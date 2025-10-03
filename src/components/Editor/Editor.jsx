@@ -6,6 +6,8 @@ import { VIEWPORT_MODES, VIEWPORT_CONFIGS } from '../../constants/viewportConfig
 import { getResponsiveProperty } from '../../utils/responsiveUtils';
 import AurelioLogo from '../shared/AurelioLogo';
 import CanvasTemplateSystem from './components/CanvasTemplateSystem';
+import { useDragDrop, useDropZone } from './hooks/useDragDrop';
+import { DraggableCanvasElement, DroppableContainer, DragGhost } from './components/DragDropIndicators';
 import './slider-styles.css';
 
 // Importar iconos necesarios
@@ -110,7 +112,7 @@ const availableElements = [
 ];
 
 // Componente para elementos del panel
-function PanelElement({ element, onClick }) {
+function PanelElement({ element, onClick, onDragStart }) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleClick = (e) => {
@@ -121,25 +123,42 @@ function PanelElement({ element, onClick }) {
     }
   };
 
+  const handleDragStart = (e) => {
+    setIsDragging(true);
+    onDragStart(e, element);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
   return (
     <div
+      draggable
       onClick={handleClick}
-      className={`flex flex-col items-center justify-center p-4 bg-[#2a2a2a] rounded-lg text-white hover:bg-[#3a3a3a] transition-colors min-h-[80px] group cursor-pointer select-none ${
-        isDragging ? 'opacity-50' : ''
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      className={`flex flex-col items-center justify-center p-4 bg-[#2a2a2a] rounded-lg text-white hover:bg-[#3a3a3a] transition-colors min-h-[80px] group cursor-grab active:cursor-grabbing select-none ${
+        isDragging ? 'opacity-50 scale-95' : ''
       }`}
     >
-      <div className="mb-2 group-hover:scale-110 transition-transform">
+      <div className="mb-2 group-hover:scale-110 transition-transform pointer-events-none">
         {element.icon}
       </div>
-      <span className="text-xs text-center font-medium">
+      <span className="text-xs text-center font-medium pointer-events-none">
         {element.name}
       </span>
+      
+      {/* Indicador visual de drag */}
+      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="w-2 h-2 bg-[#8b5cf6] rounded-full" />
+      </div>
     </div>
   );
 }
 
 // Panel de elementos disponibles
-function ElementsPanel({ onAddElement }) {
+function ElementsPanel({ onAddElement, onElementDragStart }) {
   const handleElementClick = (element, e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -149,13 +168,16 @@ function ElementsPanel({ onAddElement }) {
   return (
     <div className="w-64 bg-[#1a1a1a] border-r border-[#2a2a2a] p-4">
       <h3 className="text-white font-semibold mb-4">Elementos</h3>
-      <div className="text-xs text-gray-400 mb-3">Haz clic para agregar</div>
+      <div className="text-xs text-gray-400 mb-3">
+        Haz clic o arrastra para agregar
+      </div>
       <div className="grid grid-cols-2 gap-3">
         {availableElements.map((element) => (
           <div key={element.id} className="relative">
             <PanelElement 
               element={element} 
               onClick={(e) => handleElementClick(element, e)}
+              onDragStart={onElementDragStart}
             />
           </div>
         ))}
@@ -164,16 +186,20 @@ function ElementsPanel({ onAddElement }) {
   );
 }
 
-// Componente Canvas básico
-function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onLoadTemplate }) {
+// Componente Canvas con drag & drop
+function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onLoadTemplate, dragDropContext }) {
   const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
+  
+  // Drop zone para canvas principal
+  const canvasDropZone = useDropZone(
+    { type: 'canvas', index: elements.length },
+    dragDropContext
+  );
   
   // Funciones para el sistema de plantillas
   const handleAddContainerStructure = (structure) => {
     console.log('📦 Adding container structure:', structure);
     
-    // Crear un elemento compatible directamente sin usar onAddElement
-    // porque onAddElement espera un elementConfig con defaultProps
     const elementTemplate = {
       id: structure.id || `element-${Date.now()}`,
       type: ELEMENT_TYPES.CONTAINER,
@@ -187,11 +213,10 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
   const handleLoadTemplate = (template) => {
     console.log('📚 Loading template:', template.name);
     if (template.elements && template.elements.length > 0) {
-      // Cargar todos los elementos de la plantilla
       template.elements.forEach((element, index) => {
         setTimeout(() => {
           onAddElement({ ...element, id: `template-element-${Date.now()}-${index}` });
-        }, index * 100); // Pequeño delay para animación
+        }, index * 100);
       });
     }
     onLoadTemplate && onLoadTemplate(template);
@@ -208,40 +233,87 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
     }
   };
 
+  // Componente interno para manejar contenedores con drag & drop
+  function ContainerElement({ element, selectedElement, onSelectElement, dragDropContext }) {
+    const containerDropZone = useDropZone(
+      { type: 'container', containerId: element.id },
+      dragDropContext
+    );
+    
+    const isEmpty = !element.props.children || element.props.children.length === 0;
+    
+    return (
+      <DroppableContainer
+        container={element}
+        isEmpty={isEmpty}
+        dropZoneProps={containerDropZone.dropZoneProps}
+        isDropTarget={containerDropZone.isDropTarget}
+        dropPosition={containerDropZone.dropPosition}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: element.props.flexDirection || 'column',
+            gap: element.props.gap || '16px',
+            padding: element.props.padding || '20px',
+            backgroundColor: element.props.backgroundColor === 'transparent' ? 'transparent' : (element.props.backgroundColor || 'transparent'),
+            borderRadius: element.props.borderRadius || '0px',
+            border: element.props.border || 'none',
+            minHeight: element.props.minHeight || '100px',
+            alignItems: element.props.alignItems || 'stretch',
+            justifyContent: element.props.justifyContent || 'flex-start',
+            flexWrap: element.props.flexWrap || 'nowrap'
+          }}
+          className="transition-all"
+        >
+          {element.props.children && element.props.children.length > 0 ? (
+            element.props.children.map((child) => (
+              <CanvasElement
+                key={child.id}
+                element={child}
+                selectedElement={selectedElement}
+                onSelectElement={onSelectElement}
+                dragDropContext={dragDropContext}
+              />
+            ))
+          ) : null}
+        </div>
+      </DroppableContainer>
+    );
+  }
+  
+  // Componente interno para elementos individuales con drop zones
+  function CanvasElement({ element, selectedElement, onSelectElement, dragDropContext, index = 0 }) {
+    const elementDropZone = useDropZone(
+      { type: 'canvas', index },
+      dragDropContext
+    );
+    
+    return (
+      <DraggableCanvasElement
+        element={element}
+        isSelected={selectedElement?.id === element.id}
+        onSelect={onSelectElement}
+        onDragStart={dragDropContext.handleExistingElementDragStart}
+        dropZoneProps={elementDropZone.dropZoneProps}
+        isDropTarget={elementDropZone.isDropTarget}
+        dropPosition={elementDropZone.dropPosition}
+      >
+        {renderElement(element)}
+      </DraggableCanvasElement>
+    );
+  }
+  
   const renderElement = (element) => {
     switch (element.type) {
       case ELEMENT_TYPES.CONTAINER:
         return (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: element.props.flexDirection || 'column',
-              gap: element.props.gap || '16px',
-              padding: element.props.padding || '20px',
-              backgroundColor: element.props.backgroundColor === 'transparent' ? 'transparent' : (element.props.backgroundColor || 'transparent'),
-              borderRadius: element.props.borderRadius || '0px',
-              border: element.props.border || 'none',
-              minHeight: element.props.minHeight || '100px',
-              alignItems: element.props.alignItems || 'stretch',
-              justifyContent: element.props.justifyContent || 'flex-start',
-              flexWrap: element.props.flexWrap || 'nowrap'
-            }}
-            className="transition-all"
-          >
-            {element.props.children && element.props.children.length > 0 ? (
-              element.props.children.map((child) => (
-                <div key={child.id}>
-                  {renderElement(child)}
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-gray-400">
-                <FiGrid className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Contenedor vacío</p>
-                <p className="text-xs">Arrastra elementos aquí</p>
-              </div>
-            )}
-          </div>
+          <ContainerElement
+            element={element}
+            selectedElement={selectedElement}
+            onSelectElement={onSelectElement}
+            dragDropContext={dragDropContext}
+          />
         );
       case ELEMENT_TYPES.HEADING:
         return (
@@ -300,57 +372,73 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
   };
 
   return (
-    <div className="w-full h-full bg-gray-100">
-      <div className="w-full h-full overflow-auto">
-        <div className="w-full flex justify-center p-4">
-          <div
-            style={{
-              width: viewportConfig.width,
-              maxWidth: viewportConfig.maxWidth,
-              minHeight: elements.length === 0 ? viewportConfig.minHeight : 'auto',
-              padding: viewportConfig.padding,
-              boxSizing: 'border-box',
-            }}
-            className={`bg-white transition-colors ${
-              viewportMode === VIEWPORT_MODES.DESKTOP ? 'w-full' : 'rounded-lg shadow-lg border border-gray-200'
-            }`}
-          >
-            {elements.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[500px]">
-                <div className="text-center text-gray-500 mb-8">
-                  <FiGrid className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h2 className="text-2xl font-bold mb-3 text-gray-700">
-                    Comienza tu diseño
-                  </h2>
-                  <p className="text-base mb-8 max-w-md mx-auto leading-relaxed">
-                    Elige cómo quieres empezar tu página
-                  </p>
-                </div>
-                
-                {/* Sistema de plantillas */}
-                <CanvasTemplateSystem
-                  onAddContainerStructure={handleAddContainerStructure}
-                  onLoadTemplate={handleLoadTemplate}
-                  onUploadTemplate={handleUploadTemplate}
-                />
-              </div>
-            ) : (
-              <>
-                {elements.map((element) => (
-                  <div
-                    key={element.id}
-                    className={`relative group ${selectedElement?.id === element.id ? 'ring-2 ring-[#8b5cf6]' : ''} hover:ring-2 hover:ring-[#8b5cf6] transition-all cursor-pointer`}
-                    onClick={() => onSelectElement(element)}
-                  >
-                    {renderElement(element)}
+    <>
+      <div className="w-full h-full bg-gray-100">
+        <div className="w-full h-full overflow-auto">
+          <div className="w-full flex justify-center p-4">
+            <div
+              style={{
+                width: viewportConfig.width,
+                maxWidth: viewportConfig.maxWidth,
+                minHeight: elements.length === 0 ? viewportConfig.minHeight : 'auto',
+                padding: viewportConfig.padding,
+                boxSizing: 'border-box',
+              }}
+              className={`bg-white transition-colors ${
+                viewportMode === VIEWPORT_MODES.DESKTOP ? 'w-full' : 'rounded-lg shadow-lg border border-gray-200'
+              }`}
+              {...canvasDropZone.dropZoneProps}
+            >
+              {elements.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[500px]">
+                  <div className="text-center text-gray-500 mb-8">
+                    <FiGrid className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <h2 className="text-2xl font-bold mb-3 text-gray-700">
+                      Comienza tu diseño
+                    </h2>
+                    <p className="text-base mb-8 max-w-md mx-auto leading-relaxed">
+                      Arrastra elementos aquí o elige una plantilla
+                    </p>
                   </div>
-                ))}
-              </>
-            )}
+                  
+                  {/* Sistema de plantillas */}
+                  <CanvasTemplateSystem
+                    onAddContainerStructure={handleAddContainerStructure}
+                    onLoadTemplate={handleLoadTemplate}
+                    onUploadTemplate={handleUploadTemplate}
+                  />
+                  
+                  {/* Indicador de drop zone cuando canvas está vacío */}
+                  {canvasDropZone.isDropTarget && (
+                    <div className="absolute inset-0 bg-[#8b5cf6]/10 border-2 border-dashed border-[#8b5cf6] rounded-lg flex items-center justify-center">
+                      <div className="bg-[#8b5cf6] text-white px-4 py-2 rounded-lg font-medium">
+                        Soltar elemento aquí
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {elements.map((element, index) => (
+                    <CanvasElement
+                      key={element.id}
+                      element={element}
+                      selectedElement={selectedElement}
+                      onSelectElement={onSelectElement}
+                      dragDropContext={dragDropContext}
+                      index={index}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      
+      {/* Ghost de arrastre */}
+      <DragGhost dragState={dragDropContext.dragState} />
+    </>
   );
 }
 
@@ -485,11 +573,25 @@ function Editor({ onExit }) {
     addElement,
     selectElement,
     updateElement,
+    addElementToContainer,
+    reorderElementByIndex,
+    moveToContainer,
   } = useEditor();
+
+  // Sistema drag & drop
+  const dragDropContext = useDragDrop(
+    addElementToContainer, // Para elementos nuevos
+    moveToContainer,       // Para mover elementos existentes  
+    reorderElementByIndex  // Para reordenar elementos
+  );
 
   const handleAddElement = useCallback((elementTemplate) => {
     addElement(elementTemplate);
   }, [addElement]);
+
+  const handleElementDragStart = useCallback((event, element) => {
+    dragDropContext.handleNewElementDragStart(event, element);
+  }, [dragDropContext]);
 
   const handleSave = () => {
     console.log('Guardando página...', elements);
@@ -594,7 +696,10 @@ function Editor({ onExit }) {
       {/* Editor principal */}
       <div className="flex" style={{ height: 'calc(100vh - 80px)' }}>
         {/* Panel de elementos */}
-        <ElementsPanel onAddElement={handleAddElement} />
+        <ElementsPanel 
+          onAddElement={handleAddElement} 
+          onElementDragStart={handleElementDragStart}
+        />
 
         {/* Canvas central */}
         <div className="flex-1">
@@ -605,6 +710,7 @@ function Editor({ onExit }) {
             viewportMode={viewportMode}
             onAddElement={handleAddElement}
             onLoadTemplate={(template) => console.log('Template loaded:', template.name)}
+            dragDropContext={dragDropContext}
           />
         </div>
 

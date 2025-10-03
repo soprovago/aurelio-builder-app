@@ -250,6 +250,74 @@ export const useEditor = (initialState = {}) => {
   }, []);
 
   /**
+   * Reordenar elemento por ID a un índice específico
+   * 
+   * @param {string} elementId - ID del elemento a mover
+   * @param {number} targetIndex - Índice de destino
+   */
+  const reorderElementByIndex = useCallback((elementId, targetIndex) => {
+    console.log('🔄 Reordering element by index:', elementId, 'to index', targetIndex);
+    
+    setElements(prev => {
+      const currentIndex = prev.findIndex(el => el.id === elementId);
+      if (currentIndex === -1 || currentIndex === targetIndex) {
+        return prev; // Elemento no encontrado o ya está en la posición correcta
+      }
+      
+      const newElements = [...prev];
+      const [movedElement] = newElements.splice(currentIndex, 1);
+      newElements.splice(targetIndex, 0, movedElement);
+      
+      return newElements;
+    });
+  }, []);
+
+  /**
+   * Agregar elemento a un contenedor específico por ID
+   * 
+   * @param {Object} elementConfig - Configuración del elemento
+   * @param {number} index - Índice donde insertar (opcional)
+   * @param {string} containerId - ID del contenedor (opcional)
+   */
+  const addElementToContainer = useCallback((elementConfig, index = null, containerId = null) => {
+    console.log('🆕 Adding element to container:', elementConfig.name, 'container:', containerId);
+    
+    const newElement = {
+      id: generateId(),
+      type: elementConfig.type,
+      props: { ...elementConfig.defaultProps },
+    };
+
+    if (containerId) {
+      // Agregar a contenedor específico
+      setElements(prev => 
+        updateElementRecursively(prev, containerId, (container) => ({
+          ...container,
+          props: {
+            ...container.props,
+            children: [...(container.props.children || []), newElement]
+          }
+        }))
+      );
+    } else {
+      // Agregar al canvas principal
+      setElements(prev => {
+        if (index !== null && index >= 0 && index <= prev.length) {
+          const newElements = [...prev];
+          newElements.splice(index, 0, newElement);
+          return newElements;
+        }
+        return [...prev, newElement];
+      });
+    }
+
+    // Auto-seleccionar el nuevo elemento
+    setSelectedElement(newElement);
+    
+    return newElement;
+  }, []);
+
+  /**
    * Limpiar canvas (remover todos los elementos)
    */
   const clearCanvas = useCallback(() => {
@@ -287,9 +355,11 @@ export const useEditor = (initialState = {}) => {
     // Operaciones de contenedores
     addToContainer,
     moveToContainer,
+    addElementToContainer,
     
     // Operaciones de canvas
     reorderElements,
+    reorderElementByIndex,
     clearCanvas,
     loadElements,
     
