@@ -1,0 +1,311 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { ELEMENT_TYPES } from '../../../constants/elementTypes';
+import { FiGrid, FiMoreVertical, FiCopy, FiTrash2, FiMove } from 'react-icons/fi';
+
+/**
+ * Componente para renderizar elementos hijo dentro de contenedores
+ * Soporta drag & drop recursivo y anidación de contenedores
+ */
+function ContainerChild({ 
+  element, 
+  onSelect, 
+  onDelete, 
+  onDuplicate, 
+  isSelected, 
+  onAddToContainer, 
+  onMoveToContainer, 
+  selectedElement, 
+  viewportMode, 
+  parentElement, 
+  onUpdateElement 
+}) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const childRef = useRef(null);
+  const menuRef = useRef(null);
+
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isMenuOpen]);
+
+  const handleDragStart = (e) => {
+    console.log('🚀 ContainerChild drag started:', element.id, element.type);
+    setIsDragging(true);
+    setIsMenuOpen(false);
+    e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'canvas-element', id: element.id }));
+    e.dataTransfer.effectAllowed = 'move';
+    e.stopPropagation();
+  };
+
+  const handleDragEnd = (e) => {
+    console.log('🏁 ContainerChild drag ended:', element.id);
+    setIsDragging(false);
+    e.stopPropagation();
+  };
+
+  const renderChildElement = () => {
+    switch (element.type) {
+      case ELEMENT_TYPES.CONTAINER:
+        return (
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragOver(true);
+            }}
+            onDragLeave={(e) => {
+              e.stopPropagation();
+              if (!e.currentTarget.contains(e.relatedTarget)) {
+                setIsDragOver(false);
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragOver(false);
+              
+              console.log('🎯 ContainerChild onDrop triggered for container:', element.id);
+              
+              try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                console.log('📦 Drag data:', data);
+                
+                if (data.type === 'panel-element') {
+                  console.log('✅ Adding element to nested container:', element.id, 'Element:', data.element.name);
+                  onAddToContainer(element.id, data.element);
+                } else if (data.type === 'canvas-element') {
+                  console.log('✅ Moving EXISTING element to nested container:', element.id, 'Element ID:', data.id);
+                  onMoveToContainer && onMoveToContainer(data.id, element.id);
+                } else {
+                  console.log('❌ Drag data type not recognized:', data.type);
+                }
+              } catch (error) {
+                console.error('❌ Error parsing drag data:', error);
+              }
+            }}
+            style={{
+              width: element.props.widthType === 'full' ? '100%' : element.props.width || '100%',
+              height: 'auto',
+              minHeight: element.props.height && element.props.height !== 'auto' 
+                ? element.props.height 
+                : (element.props.minHeight || '100px'),
+              display: 'flex',
+              flexDirection: element.props.flexDirection || 'column',
+              gap: element.props.gap || '16px',
+              padding: element.props.padding || '20px',
+              backgroundColor: element.props.glassEffect 
+                ? `${element.props.glassColor || '#ffffff'}${Math.round((element.props.glassOpacity || 20) * 2.55).toString(16).padStart(2, '0')}` 
+                : element.props.backgroundColor,
+              backgroundImage: element.props.backgroundImage || 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              backdropFilter: element.props.glassEffect ? `blur(${element.props.glassBlur || 10}px)` : 'none',
+              WebkitBackdropFilter: element.props.glassEffect ? `blur(${element.props.glassBlur || 10}px)` : 'none',
+              borderRadius: element.props.borderRadius || '0px',
+              border: isDragOver ? '2px dashed #8b5cf6' : 
+                      (isSelected || (!element.props.children || element.props.children.length === 0)) ? 
+                      element.props.border || '1px dashed #d1d5db' : 'none',
+              alignItems: element.props.alignItems || 'stretch',
+              justifyContent: element.props.justifyContent || 'flex-start',
+              flexWrap: element.props.flexWrap || 'nowrap',
+              boxSizing: 'border-box',
+              overflow: 'visible',
+              flexShrink: 0,
+            }}
+            className={isDragOver ? 'bg-gray-50' : ''}
+          >
+            {element.props.children && element.props.children.length > 0 ? (
+              element.props.children.map((child) => (
+                <div key={child.id} className={
+                  element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse' 
+                    ? 'flex-1 min-w-0 relative' 
+                    : 'w-full'
+                }>
+                  <ContainerChild
+                    element={child}
+                    onSelect={onSelect}
+                    onDelete={(childId) => onDelete(childId, element.id)}
+                    onDuplicate={(childElement) => onDuplicate(childElement, element.id)}
+                    isSelected={selectedElement?.id === child.id}
+                    onAddToContainer={onAddToContainer}
+                    onMoveToContainer={onMoveToContainer}
+                    selectedElement={selectedElement}
+                    viewportMode={viewportMode}
+                    parentElement={element}
+                    onUpdateElement={onUpdateElement}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className={`text-center py-4 transition-colors ${
+                isDragOver ? 'text-gray-600' : 'text-gray-400'
+              }`}>
+                <FiGrid className={`w-6 h-6 mx-auto mb-2 opacity-50 ${
+                  isDragOver ? 'text-gray-600' : ''
+                }`} />
+                <p className="text-xs">
+                  {isDragOver ? 'Suelta aquí' : 'Contenedor anidado'}
+                </p>
+                <p className="text-xs opacity-70">
+                  {isDragOver ? 'Elemento listo para agregarse' : 'Arrastra elementos aquí'}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+      case ELEMENT_TYPES.HEADING:
+        return (
+          <div
+            style={{
+              color: element.props.color,
+              fontSize: element.props.fontSize,
+              textAlign: element.props.alignment,
+            }}
+          >
+            <h1>{element.props.text}</h1>
+          </div>
+        );
+
+      case ELEMENT_TYPES.TEXT:
+        return (
+          <div
+            style={{
+              color: element.props.color,
+              fontSize: element.props.fontSize,
+              textAlign: element.props.alignment,
+            }}
+          >
+            {element.props.text}
+          </div>
+        );
+
+      case ELEMENT_TYPES.IMAGE:
+        return (
+          <img
+            src={element.props.src}
+            alt={element.props.alt}
+            style={{
+              width: element.props.width,
+              height: element.props.height,
+              objectFit: 'cover',
+            }}
+          />
+        );
+
+      case ELEMENT_TYPES.BUTTON:
+        return (
+          <button
+            style={{
+              backgroundColor: element.props.backgroundColor,
+              backgroundImage: element.props.backgroundImage || 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              color: element.props.textColor,
+              padding: element.props.padding,
+              borderRadius: element.props.borderRadius,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {element.props.text}
+          </button>
+        );
+
+      default:
+        return <div className="p-2 bg-gray-100 rounded text-center text-sm text-gray-500">Elemento: {element.type}</div>;
+    }
+  };
+
+  // Solo hacer draggable elementos que no sean contenedores (los contenedores manejan su propio drag)
+  const shouldBeDraggable = element.type !== ELEMENT_TYPES.CONTAINER;
+
+  return (
+    <div
+      ref={childRef}
+      draggable={shouldBeDraggable}
+      onDragStart={shouldBeDraggable ? handleDragStart : undefined}
+      onDragEnd={shouldBeDraggable ? handleDragEnd : undefined}
+      className={`relative group/item ${isSelected ? 'ring-2 ring-[#8b5cf6]' : ''} ${
+        isDragging ? 'opacity-70' : ''
+      } hover:ring-2 hover:ring-[#8b5cf6] transition-all`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(element);
+      }}
+    >
+      {renderChildElement()}
+      
+      {/* Overlay de herramientas para elementos hijo */}
+      <div className="absolute top-1 right-1 opacity-0 group-hover/item:opacity-100 transition-opacity pointer-events-none">
+        <div className="pointer-events-auto flex items-center gap-1">
+          {/* Handle de mover */}
+          <div
+            className="p-1 bg-[#8b5cf6] text-white rounded hover:bg-[#7c3aed] transition-all cursor-grab active:cursor-grabbing"
+            title="Mover"
+          >
+            <FiMove className="w-3 h-3" />
+          </div>
+          
+          {/* Menú de acciones */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMenuOpen(!isMenuOpen);
+              }}
+              className="p-1 bg-gray-800 bg-opacity-80 text-white rounded hover:bg-gray-700 shadow-lg transition-colors"
+              title="Más opciones"
+            >
+              <FiMoreVertical className="w-3 h-3" />
+            </button>
+            
+            {/* Menú desplegable */}
+            {isMenuOpen && (
+              <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px] z-50">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicate(element, parentElement.id);
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors"
+                >
+                  <FiCopy className="w-4 h-4 text-blue-500" />
+                  Duplicar
+                </button>
+                <div className="border-t border-gray-100"></div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(element.id, parentElement.id);
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                  Eliminar
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ContainerChild;

@@ -30,6 +30,8 @@ import {
   FiSliders,
   FiPlus
 } from 'react-icons/fi';
+import AddContainerButton from './components/AddContainerButton';
+import ContainerChild from './components/ContainerChild';
 
 // Elementos disponibles en la sidebar
 const availableElements = [
@@ -187,9 +189,11 @@ function ElementsPanel({ onAddElement }) {
 }
 
 // Componente CanvasElement (elemento individual en canvas)
-function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onReorder, onAddElementAtIndex, selectedElement, viewportMode }) {
+function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onReorder, onAddElementAtIndex, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAddButton, setShowAddButton] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const dragRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -214,32 +218,108 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
       case ELEMENT_TYPES.CONTAINER:
         return (
           <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragOver(true);
+            }}
+            onDragLeave={(e) => {
+              e.stopPropagation();
+              if (!e.currentTarget.contains(e.relatedTarget)) {
+                setIsDragOver(false);
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDragOver(false);
+              
+              console.log('🎯 CanvasElement Container onDrop triggered for:', element.id);
+              
+              try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                console.log('📦 Canvas Container drag data:', data);
+                
+                if (data.type === 'panel-element') {
+                  console.log('✅ Adding NEW element to main container:', element.id, 'Element:', data.element.name);
+                  onAddToContainer(element.id, data.element);
+                } else if (data.type === 'canvas-element') {
+                  console.log('✅ Moving EXISTING element to main container:', element.id, 'Element ID:', data.id);
+                  onMoveToContainer && onMoveToContainer(data.id, element.id);
+                } else {
+                  console.log('❌ Canvas Container drag data type not recognized:', data.type);
+                }
+              } catch (error) {
+                console.error('❌ Error parsing canvas container drag data:', error);
+              }
+            }}
             style={{
+              width: element.props.widthType === 'full' ? '100%' : element.props.width || '100%',
+              height: 'auto',
+              minHeight: element.props.height && element.props.height !== 'auto' 
+                ? element.props.height 
+                : (element.props.minHeight || '100px'),
               display: 'flex',
               flexDirection: element.props.flexDirection || 'column',
               gap: element.props.gap || '16px',
               padding: element.props.padding || '20px',
-              backgroundColor: element.props.backgroundColor === 'transparent' ? 'transparent' : (element.props.backgroundColor || 'transparent'),
+              backgroundColor: element.props.glassEffect 
+                ? `${element.props.glassColor || '#ffffff'}${Math.round((element.props.glassOpacity || 20) * 2.55).toString(16).padStart(2, '0')}` 
+                : (element.props.backgroundColor === 'transparent' ? 'transparent' : (element.props.backgroundColor || 'transparent')),
+              backgroundImage: element.props.backgroundImage || 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              backdropFilter: element.props.glassEffect ? `blur(${element.props.glassBlur || 10}px)` : 'none',
+              WebkitBackdropFilter: element.props.glassEffect ? `blur(${element.props.glassBlur || 10}px)` : 'none',
               borderRadius: element.props.borderRadius || '0px',
-              border: element.props.border || 'none',
-              minHeight: element.props.minHeight || '100px',
+              border: isDragOver ? '2px dashed #8b5cf6' : 
+                      (isSelected || (!element.props.children || element.props.children.length === 0)) ? 
+                      element.props.border || '1px dashed #d1d5db' : 'none',
               alignItems: element.props.alignItems || 'stretch',
               justifyContent: element.props.justifyContent || 'flex-start',
-              flexWrap: element.props.flexWrap || 'nowrap'
+              flexWrap: element.props.flexWrap || 'nowrap',
+              boxSizing: 'border-box',
+              overflow: 'visible',
+              flexShrink: 0,
             }}
-            className="transition-all"
+            className={`transition-all ${isDragOver ? 'bg-gray-50' : ''}`}
           >
             {element.props.children && element.props.children.length > 0 ? (
               element.props.children.map((child) => (
-                <div key={child.id}>
-                  {renderChildElement(child)}
+                <div key={child.id} className={
+                  element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse' 
+                    ? 'flex-1 min-w-0 relative' 
+                    : 'w-full'
+                }>
+                  <ContainerChild
+                    element={child}
+                    onSelect={onSelect}
+                    onDelete={(childId) => onDelete(childId, element.id)}
+                    onDuplicate={(childElement) => onDuplicate(childElement, element.id)}
+                    isSelected={selectedElement?.id === child.id}
+                    onAddToContainer={onAddToContainer}
+                    onMoveToContainer={onMoveToContainer}
+                    selectedElement={selectedElement}
+                    viewportMode={viewportMode}
+                    parentElement={element}
+                    onUpdateElement={onUpdateElement}
+                  />
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 text-gray-400">
-                <FiGrid className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Contenedor vacío</p>
-                <p className="text-xs">Arrastra elementos aquí</p>
+              <div className={`text-center py-8 transition-colors ${
+                isDragOver ? 'text-gray-600' : 'text-gray-400'
+              }`}>
+                <FiGrid className={`w-8 h-8 mx-auto mb-2 opacity-50 ${
+                  isDragOver ? 'text-gray-600' : ''
+                }`} />
+                <p className="text-sm">
+                  {isDragOver ? '¡Suelta aquí para agregar!' : 'Contenedor vacío'}
+                </p>
+                <p className="text-xs">
+                  {isDragOver ? 'Elemento listo para agregarse' : 'Arrastra elementos aquí'}
+                </p>
               </div>
             )}
           </div>
@@ -360,6 +440,14 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
 
   const [dragOverPosition, setDragOverPosition] = useState(null); // 'top' or 'bottom'
 
+  // Manejador para agregar contenedor debajo del elemento actual
+  const handleAddContainer = (containerElement) => {
+    if (typeof onAddElementAtIndex === 'function') {
+      // Agregar el contenedor justo después del elemento actual
+      onAddElementAtIndex(containerElement, index + 1);
+    }
+  };
+
   const handleDragStart = (e) => {
     setIsDragging(true);
     setIsMenuOpen(false); // Cerrar menú al iniciar drag
@@ -472,6 +560,8 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onMouseEnter={() => setShowAddButton(true)}
+        onMouseLeave={() => setShowAddButton(false)}
         className={`relative group ${
           isSelected ? 'ring-2 ring-[#8b5cf6]' : ''
         } ${
@@ -545,6 +635,14 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
           {/* Overlay para indicar que es arrastrable */}
           <div className="absolute inset-0 opacity-0 group-hover:opacity-5 bg-[#8b5cf6] transition-opacity pointer-events-none" />
         </div>
+        
+        {/* Botón de añadir contenedor (solo para contenedores) */}
+        {element.type === ELEMENT_TYPES.CONTAINER && showAddButton && (
+          <AddContainerButton 
+            onAddContainer={handleAddContainer}
+            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          />
+        )}
       </div>
       
       {/* Indicador de drop en la parte inferior */}
@@ -561,7 +659,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
 }
 
 // Componente Canvas principal
-function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onAddElementAtIndex, onDeleteElement, onDuplicateElement, onReorderElements }) {
+function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onAddElementAtIndex, onDeleteElement, onDuplicateElement, onReorderElements, onAddToContainer, onMoveToContainer, onUpdateElement }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
   
@@ -700,8 +798,11 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                     onDuplicate={onDuplicateElement}
                     onReorder={onReorderElements}
                     onAddElementAtIndex={onAddElementAtIndex}
+                    onAddToContainer={onAddToContainer}
+                    onMoveToContainer={onMoveToContainer}
                     selectedElement={selectedElement}
                     viewportMode={viewportMode}
+                    onUpdateElement={onUpdateElement}
                   />
                 ))}
                 </div>
@@ -859,6 +960,8 @@ function Editor({ onExit }) {
     deleteElement,
     duplicateElementAtIndex,
     reorderElementByIndex,
+    addToContainer,
+    moveToContainer,
   } = useEditor();
 
   const handleAddElement = useCallback((elementTemplate) => {
@@ -1001,6 +1104,9 @@ function Editor({ onExit }) {
             onDeleteElement={handleDeleteElement}
             onDuplicateElement={handleDuplicateElement}
             onReorderElements={handleReorderElements}
+            onAddToContainer={addToContainer}
+            onMoveToContainer={moveToContainer}
+            onUpdateElement={updateElement}
           />
         </div>
 
