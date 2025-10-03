@@ -31,7 +31,6 @@ import {
   FiPlus
 } from 'react-icons/fi';
 import AddContainerButton from './components/AddContainerButton';
-import SimpleContainerChild from './components/SimpleContainerChild';
 
 // Elementos disponibles en la sidebar
 const availableElements = [
@@ -219,118 +218,23 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
       case ELEMENT_TYPES.CONTAINER:
         return (
           <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsDragOver(true);
-            }}
-            onDragLeave={(e) => {
-              e.stopPropagation();
-              if (!e.currentTarget.contains(e.relatedTarget)) {
-                setIsDragOver(false);
-              }
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsDragOver(false);
-              
-              console.log('🎯 CanvasElement Container onDrop triggered for:', element.id);
-              
-              try {
-                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                console.log('📦 Canvas Container drag data:', data);
-                
-                if (data.type === 'panel-element') {
-                  console.log('✅ Adding NEW element to main container:', element.id, 'Element:', data.element.name);
-                  console.log('🔍 onAddToContainer function:', typeof onAddToContainer, onAddToContainer);
-                  if (typeof onAddToContainer === 'function') {
-                    onAddToContainer(element.id, data.element);
-                  } else {
-                    console.error('❌ onAddToContainer is not a function!');
-                  }
-                } else if (data.type === 'canvas-element') {
-                  console.log('✅ Moving EXISTING element to main container:', element.id, 'Element ID:', data.id);
-                  console.log('🔍 onMoveToContainer function:', typeof onMoveToContainer, onMoveToContainer);
-                  if (typeof onMoveToContainer === 'function') {
-                    onMoveToContainer(data.id, element.id);
-                  } else {
-                    console.error('❌ onMoveToContainer is not a function!');
-                  }
-                } else {
-                  console.log('❌ Canvas Container drag data type not recognized:', data.type);
-                }
-              } catch (error) {
-                console.error('❌ Error parsing canvas container drag data:', error);
-              }
-            }}
             style={{
-              width: element.props.widthType === 'full' ? '100%' : element.props.width || '100%',
-              height: 'auto',
-              minHeight: element.props.height && element.props.height !== 'auto' 
-                ? element.props.height 
-                : (element.props.minHeight || '100px'),
+              width: '100%',
+              minHeight: '150px',
+              padding: '20px',
+              border: '1px dashed #d1d5db',
+              borderRadius: '8px',
+              backgroundColor: 'transparent',
               display: 'flex',
-              flexDirection: element.props.flexDirection || 'column',
-              gap: element.props.gap || '16px',
-              padding: element.props.padding || '20px',
-              backgroundColor: element.props.glassEffect 
-                ? `${element.props.glassColor || '#ffffff'}${Math.round((element.props.glassOpacity || 20) * 2.55).toString(16).padStart(2, '0')}` 
-                : (element.props.backgroundColor === 'transparent' ? 'transparent' : (element.props.backgroundColor || 'transparent')),
-              backgroundImage: element.props.backgroundImage || 'none',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              backdropFilter: element.props.glassEffect ? `blur(${element.props.glassBlur || 10}px)` : 'none',
-              WebkitBackdropFilter: element.props.glassEffect ? `blur(${element.props.glassBlur || 10}px)` : 'none',
-              borderRadius: element.props.borderRadius || '0px',
-              border: isDragOver ? '2px dashed #8b5cf6' : 
-                      (isSelected || (!element.props.children || element.props.children.length === 0)) ? 
-                      element.props.border || '1px dashed #d1d5db' : 'none',
-              alignItems: element.props.alignItems || 'stretch',
-              justifyContent: element.props.justifyContent || 'flex-start',
-              flexWrap: element.props.flexWrap || 'nowrap',
-              boxSizing: 'border-box',
-              overflow: 'visible', // ✅ Permitir expansión visual del contenido
-              flexShrink: 0, // ✅ No encogerse
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
-            className={`transition-all ${isDragOver ? 'bg-gray-50' : ''}`}
           >
-            {element.props.children && element.props.children.length > 0 ? (
-              element.props.children.map((child) => (
-                <div key={child.id} className={
-                  element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse' 
-                    ? 'flex-1 min-w-0 relative' 
-                    : 'w-full'
-                }>
-                  <SimpleContainerChild
-                    element={child}
-                    onSelect={onSelect}
-                    onDelete={(childId) => onDelete(childId, element.id)}
-                    onDuplicate={(childElement) => onDuplicate(childElement, element.id)}
-                    isSelected={selectedElement?.id === child.id}
-                    onAddToContainer={onAddToContainer}
-                    onMoveToContainer={onMoveToContainer}
-                    selectedElement={selectedElement}
-                    parentElement={element}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className={`text-center py-8 transition-colors ${
-                isDragOver ? 'text-gray-600' : 'text-gray-400'
-              }`}>
-                <FiGrid className={`w-8 h-8 mx-auto mb-2 opacity-50 ${
-                  isDragOver ? 'text-gray-600' : ''
-                }`} />
-                <p className="text-sm">
-                  {isDragOver ? '¡Suelta aquí para agregar!' : 'Contenedor vacío'}
-                </p>
-                <p className="text-xs">
-                  {isDragOver ? 'Elemento listo para agregarse' : 'Arrastra elementos aquí'}
-                </p>
-              </div>
-            )}
+            <div className="text-center text-gray-400">
+              <FiGrid className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Contenedor vacío</p>
+              <p className="text-xs">Sin funcionalidad por ahora</p>
+            </div>
           </div>
         );
       case ELEMENT_TYPES.HEADING:
