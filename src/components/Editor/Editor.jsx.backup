@@ -516,9 +516,10 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
 
   const handleDragStart = (e) => {
     console.log('Drag started:', element.type, element.id);
+    const dragData = { type: 'canvas-element', id: element.id, index };
+    console.log('📦 Drag data being sent:', dragData);
     setIsDragging(true);
-    setIsMenuOpen(false); // Cerrar menú al iniciar drag
-    e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'canvas-element', id: element.id, index }));
+    e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
     
     // No crear imagen personalizada para contenedores ya que puede interferir
@@ -776,6 +777,7 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
     e.stopPropagation();
     e.dataTransfer.dropEffect = 'copy';
     setIsDragOver(true);
+    console.log('💰 Canvas handleDragOver triggered');
   };
 
   const handleDragLeave = (e) => {
@@ -789,11 +791,19 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
     e.stopPropagation();
     setIsDragOver(false);
     
+    console.log('🎨 Canvas handleDrop triggered');
+    
     try {
       const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      console.log('📊 Canvas drop data:', data);
       
       if (data.type === 'panel-element') {
+        console.log('✅ Canvas adding panel element:', data.element.name);
         onAddElement(data.element);
+      } else if (data.type === 'canvas-element') {
+        // Mover elemento desde contenedor al canvas principal
+        console.log('📦➡️🎨 Moving element from container to canvas:', data.id);
+        onMoveToContainer(data.id, null); // null = canvas principal
       }
     } catch (error) {
       console.error('Error parsing drag data:', error);
@@ -858,7 +868,12 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
             ) : (
               <>
                 {/* Elementos del canvas */}
-                <div className="space-y-2 mb-8">
+                <div 
+                  className="space-y-2 mb-8"
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
                 {elements.map((element, index) => (
                   <CanvasElement
                     key={element.id}
@@ -879,6 +894,29 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                     allElements={elements}
                   />
                 ))}
+                </div>
+                
+                {/* Área de drop para elementos desde contenedores */}
+                <div 
+                  className={`min-h-[60px] border-2 border-dashed rounded-lg transition-all duration-200 mb-6 flex items-center justify-center ${
+                    isDragOver 
+                      ? 'border-blue-400 bg-blue-50 text-blue-600' 
+                      : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-gray-300'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <div className="text-center py-4">
+                    <div className="text-sm font-medium mb-1">
+                      {isDragOver ? '¡Suelta aquí!' : 'Zona de Drop'}
+                    </div>
+                    <div className="text-xs opacity-70">
+                      {isDragOver 
+                        ? 'El elemento se agregará al canvas' 
+                        : 'Arrastra elementos desde contenedores aquí'}
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Sistema de plantillas siempre visible */}

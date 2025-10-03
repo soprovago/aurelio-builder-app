@@ -1,7 +1,7 @@
 import { useAuth } from "../context/AuthContext";
 import { AurelioBuilderProvider } from "../context/AurelioBuilderContext";
 // import { Builder } from '../features/builder';
-import Editor from '../components/Editor/Editor';
+import RefactoredEditor from '../components/Editor/refactored/RefactoredEditor';
 import { useNavigate } from "react-router-dom";
 
 function EditorPage() {
@@ -21,7 +21,7 @@ function EditorPage() {
 
   return (
     <AurelioBuilderProvider>
-      <Editor onExit={handleExit} />
+      <RefactoredEditor onExit={handleExit} />
     </AurelioBuilderProvider>
   );
 }

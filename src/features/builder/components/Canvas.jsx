@@ -48,6 +48,10 @@ function Canvas({
       
       if (data.type === 'panel-element') {
         onAddElement(data.element);
+      } else if (data.type === 'canvas-element') {
+        // Mover elemento desde contenedor al canvas principal
+        console.log('📦➡️🎨 Moving element from container to canvas:', data.id);
+        onMoveToContainer(data.id, null); // null = canvas principal
       }
     } catch (error) {
       console.error('Error parsing drag data:', error);
@@ -99,7 +103,7 @@ function Canvas({
                   <p className="text-base mb-8 max-w-md mx-auto leading-relaxed">
                     {isDragOver 
                       ? 'Tu elemento será agregado al lienzo' 
-                      : 'Arrastra elementos desde el panel lateral o elige una plantilla'}
+                      : 'Arrastra elementos desde el panel lateral, contenedores o elige una plantilla'}
                   </p>
                 </div>
                 
@@ -112,7 +116,12 @@ function Canvas({
             ) : (
               <>
                 {/* Elementos del canvas renderizados con CanvasElement modular */}
-                <div className="space-y-2 mb-8">
+                <div 
+                  className="space-y-2 mb-8"
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
                   {elements.map((element, index) => (
                     <CanvasElement
                       key={element.id}
