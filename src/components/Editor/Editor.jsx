@@ -44,11 +44,21 @@ const availableElements = [
     icon: <FiGrid className="w-5 h-5" />,
     defaultProps: {
       children: [], // Array para elementos hijos
+      layout: 'vertical',
+      gap: '16px',
       padding: '20px',
-      minHeight: '150px',
       backgroundColor: 'transparent',
-      border: '2px dashed #d1d5db',
-      borderRadius: '8px'
+      borderRadius: '0px',
+      border: 'none',
+      minHeight: '100px',
+      alignment: 'left',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      alignItems: 'stretch',
+      flexWrap: 'nowrap',
+      width: '100%',
+      height: 'auto',
+      widthType: 'full'
     }
   },
   {
@@ -298,9 +308,9 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
             style={{
               minHeight: element.props.minHeight || (hasChildren ? '120px' : '200px'),
               padding: element.props.padding || (hasChildren ? '16px' : '48px'),
-              backgroundColor: element.props.backgroundColor || (isDragOver ? '#dbeafe' : '#f8fafc'),
-              border: element.props.border || (isDragOver ? '3px solid #3b82f6' : '2px dashed #cbd5e1'),
-              borderRadius: element.props.borderRadius || '12px',
+              backgroundColor: element.props.backgroundColor || (isDragOver ? '#dbeafe' : 'transparent'),
+              border: element.props.border || (isDragOver ? '3px solid #3b82f6' : (isSelected ? '2px solid #8b5cf6' : 'none')),
+              borderRadius: element.props.borderRadius || '0px',
               display: 'flex',
               flexDirection: 'column',
               alignItems: hasChildren ? 'stretch' : 'center',
@@ -367,19 +377,15 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               <div className="text-center w-full h-full flex flex-col items-center justify-center relative z-10">
                 {!isDragOver && (
                   <>
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-dashed border-gray-300 flex items-center justify-center mb-6 transition-all duration-300 hover:from-blue-50 hover:to-blue-100 hover:border-blue-300">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mb-6 transition-all duration-300 hover:from-blue-50 hover:to-blue-100">
                       <FiInbox className="w-10 h-10 text-gray-400" />
                     </div>
                     <h3 className="text-lg font-bold text-gray-600 mb-2">
                       Contenedor Vacío
                     </h3>
-                    <p className="text-sm text-gray-500 mb-4 max-w-xs mx-auto leading-relaxed">
-                      Arrastra cualquier elemento desde el panel lateral para comenzar
+                    <p className="text-xs text-gray-500 mb-4 max-w-xs mx-auto leading-relaxed">
+                      Arrastra cualquier elemento
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
-                      <FiGrid className="w-4 h-4" />
-                      <span>Soporta anidación ilimitada</span>
-                    </div>
                   </>
                 )}
               </div>
