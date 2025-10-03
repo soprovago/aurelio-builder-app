@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles for Aurelio Builder with WEMax theme */
+:root {
+  --primary-color: #ff1b6d;
+  --background-dark: #000000;
+  --surface-dark: #1e1e1e;
+  --card-dark: #252525;
+  --border-dark: #3a3a3a;
+  --text-dark: #ffffff;
+  --text-secondary-dark: #9ca3af;
+  
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode (default for Aurelio Builder) */
+html {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+/* Ensure body takes full height and maintains theme colors */
+body {
+  margin: 0;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}

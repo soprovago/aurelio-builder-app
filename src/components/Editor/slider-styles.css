@@ -1,0 +1,138 @@
+/* Estilos personalizados para los sliders - Más específicos para sobrescribir Tailwind */
+input[type="range"].slider-custom {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  height: 2px !important;
+  background: linear-gradient(to right, #ff1b6d 0%, #ff1b6d var(--progress, 0%), #666 var(--progress, 0%), #666 100%) !important;
+  outline: none !important;
+  border-radius: 1px !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Thumb/Handle del slider - Webkit (Chrome, Safari, Edge) */
+input[type="range"].slider-custom::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: #ff1b6d !important;
+  cursor: pointer !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(255, 27, 109, 0.3) !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+input[type="range"].slider-custom::-webkit-slider-thumb:hover {
+  background: #e0195f !important;
+  transform: scale(1.15) !important;
+  box-shadow: 0 4px 12px rgba(255, 27, 109, 0.4) !important;
+}
+
+input[type="range"].slider-custom::-webkit-slider-thumb:active {
+  background: #c01148 !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 2px 8px rgba(255, 27, 109, 0.5) !important;
+}
+
+/* Thumb/Handle del slider - Firefox */
+input[type="range"].slider-custom::-moz-range-thumb {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: #ff1b6d !important;
+  cursor: pointer !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(255, 27, 109, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+input[type="range"].slider-custom::-moz-range-thumb:hover {
+  background: #e0195f !important;
+  transform: scale(1.15) !important;
+  box-shadow: 0 4px 12px rgba(255, 27, 109, 0.4) !important;
+}
+
+input[type="range"].slider-custom::-moz-range-thumb:active {
+  background: #c01148 !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 2px 8px rgba(255, 27, 109, 0.5) !important;
+}
+
+/* Track del slider - Firefox */
+input[type="range"].slider-custom::-moz-range-track {
+  height: 2px !important;
+  background: linear-gradient(to right, #ff1b6d 0%, #ff1b6d var(--progress, 0%), #666 var(--progress, 0%), #666 100%) !important;
+  border: none !important;
+  border-radius: 1px !important;
+}
+
+/* Progress fill para Firefox */
+input[type="range"].slider-custom::-moz-range-progress {
+  background: #ff1b6d !important;
+  height: 2px !important;
+  border-radius: 1px !important;
+}
+
+/* Focus states */
+input[type="range"].slider-custom:focus {
+  outline: none !important;
+}
+
+input[type="range"].slider-custom:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(255, 27, 109, 0.2), 0 2px 6px rgba(255, 27, 109, 0.3) !important;
+}
+
+input[type="range"].slider-custom:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(255, 27, 109, 0.2), 0 2px 6px rgba(255, 27, 109, 0.3) !important;
+}
+
+/* Animaciones para modales */
+@keyframes fadeInSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px) translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeOutSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px) translateY(-10px) scale(0.95);
+  }
+}
+
+.animate-fadeInSlideIn {
+  animation: fadeInSlideIn 0.3s ease-out forwards;
+}
+
+.animate-fadeOutSlideOut {
+  animation: fadeOutSlideOut 0.3s ease-in forwards;
+}
+
+/* Animación de fade-in simple para otros elementos */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
