@@ -189,11 +189,12 @@ function ElementsPanel({ onAddElement }) {
 }
 
 // Componente CanvasElement (elemento individual en canvas)
-function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onReorder, onAddElementAtIndex, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement }) {
+function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAddButton, setShowAddButton] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [dragOverPosition, setDragOverPosition] = useState(null);
   const dragRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -448,24 +449,11 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     }
   };
 
-  const [dragOverPosition, setDragOverPosition] = useState(null); // 'top' or 'bottom'
-
-  // Agregar logs para verificar que las props están llegando
-  useEffect(() => {
-    console.log('🔍 CanvasElement props check:', {
-      elementId: element.id,
-      elementType: element.type,
-      hasOnAddToContainer: typeof onAddToContainer,
-      hasOnMoveToContainer: typeof onMoveToContainer,
-      isContainer: element.type === ELEMENT_TYPES.CONTAINER
-    });
-  }, [element.id, onAddToContainer, onMoveToContainer]);
-
   // Manejador para agregar contenedor debajo del elemento actual
   const handleAddContainer = (containerElement) => {
-    if (typeof onAddElementAtIndex === 'function') {
-      // Agregar el contenedor justo después del elemento actual
-      onAddElementAtIndex(containerElement, index + 1);
+    // Agregar el contenedor al canvas principal
+    if (typeof onAddElement === 'function') {
+      onAddElement(containerElement);
     }
   };
 
@@ -582,9 +570,9 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         draggable={true} // Hacer todos los elementos draggable
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        onDragOver={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragOver} // Solo contenedores manejan su propio dragOver
-        onDragLeave={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragLeave}
-        onDrop={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDrop}
+        onDragOver={handleDragOver} // Todos los elementos pueden recibir drop
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         onMouseEnter={() => setShowAddButton(true)}
         onMouseLeave={() => setShowAddButton(false)}
         className={`relative group ${
@@ -684,7 +672,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
 }
 
 // Componente Canvas principal
-function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onAddElementAtIndex, onDeleteElement, onDuplicateElement, onReorderElements, onAddToContainer, onMoveToContainer, onUpdateElement }) {
+function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onDeleteElement, onDuplicateElement, onAddToContainer, onMoveToContainer, onUpdateElement, onAddElementAtIndex, onReorder }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
   
@@ -821,13 +809,14 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                     onSelect={onSelectElement}
                     onDelete={onDeleteElement}
                     onDuplicate={onDuplicateElement}
-                    onReorder={onReorderElements}
-                    onAddElementAtIndex={onAddElementAtIndex}
                     onAddToContainer={onAddToContainer}
                     onMoveToContainer={onMoveToContainer}
                     selectedElement={selectedElement}
                     viewportMode={viewportMode}
                     onUpdateElement={onUpdateElement}
+                    onAddElementAtIndex={onAddElementAtIndex}
+                    onReorder={onReorder}
+                    onAddElement={onAddElement}
                   />
                 ))}
                 </div>
@@ -974,41 +963,290 @@ function Editor({ onExit }) {
   const [projectName, setProjectName] = useState('Mi Proyecto');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
-  // Usar el hook useEditor
-  const {
-    elements,
-    selectedElement,
-    addElement,
-    addElementAtIndex,
-    selectElement,
-    updateElement,
-    deleteElement,
-    duplicateElementAtIndex,
-    reorderElementByIndex,
-    addToContainer,
-    moveToContainer,
-  } = useEditor();
+  // Estado local del editor (igual que WEMax)
+  const [elements, setElements] = useState([]);
+  const [selectedElement, setSelectedElement] = useState(null);
+
+  // Función para generar IDs únicos
+  const generateId = () => {
+    return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  // Función para agregar elementos al canvas principal
+  const addElement = useCallback((elementTemplate) => {
+    console.log('🆕 Adding element to canvas:', elementTemplate.name);
+    
+    const newElement = {
+      id: `${elementTemplate.type}-${generateId()}`,
+      type: elementTemplate.type,
+      props: { ...elementTemplate.defaultProps },
+    };
+    
+    setElements(prev => [...prev, newElement]);
+    setSelectedElement(newElement);
+    
+    return newElement;
+  }, []);
+
+  // Función para buscar y actualizar elementos anidados recursivamente (de WEMax)
+  const updateNestedElement = (elements, targetId, updater) => {
+    return elements.map(element => {
+      if (element.id === targetId) {
+        return updater(element);
+      }
+      if (element.props?.children) {
+        return {
+          ...element,
+          props: {
+            ...element.props,
+            children: updateNestedElement(element.props.children, targetId, updater)
+          }
+        };
+      }
+      return element;
+    });
+  };
+
+  // Función para agregar elementos a contenedores (exacta de WEMax)
+  const addToContainer = useCallback((containerId, elementTemplate) => {
+    console.log('🔥 addToContainer called:', {
+      containerId,
+      elementType: elementTemplate.type,
+      elementName: elementTemplate.name
+    });
+    
+    const newElement = {
+      id: `${elementTemplate.type}-${generateId()}`,
+      type: elementTemplate.type,
+      props: { ...elementTemplate.defaultProps },
+    };
+    
+    console.log('✨ Created new element:', newElement);
+
+    setElements((prev) => {
+      console.log('📋 Current elements before update:', prev);
+      
+      const updated = updateNestedElement(prev, containerId, (container) => {
+        console.log('🎯 Found container to update:', container.id, 'Current children:', container.props.children?.length || 0);
+        
+        const updatedContainer = {
+          ...container,
+          props: {
+            ...container.props,
+            children: [...(container.props.children || []), newElement]
+          }
+        };
+        
+        console.log('✅ Updated container children count:', updatedContainer.props.children.length);
+        return updatedContainer;
+      });
+      
+      console.log('📋 Elements after update:', updated);
+      return updated;
+    });
+  }, []);
+
+  // Función para mover elementos existentes (exacta de WEMax)
+  const moveToContainer = useCallback((elementId, containerId) => {
+    console.log('🚚 moveToContainer called:', {
+      elementId,
+      containerId
+    });
+
+    // Función recursiva para encontrar el elemento en cualquier nivel
+    const findAndRemoveElement = (elements, targetId) => {
+      let foundElement = null;
+      
+      const updatedElements = elements.reduce((acc, element) => {
+        if (element.id === targetId) {
+          foundElement = element;
+          return acc; // No incluir este elemento en el resultado
+        }
+        
+        if (element.props?.children) {
+          const result = findAndRemoveElement(element.props.children, targetId);
+          if (result.foundElement) {
+            foundElement = result.foundElement;
+          }
+          return [...acc, {
+            ...element,
+            props: {
+              ...element.props,
+              children: result.elements
+            }
+          }];
+        }
+        
+        return [...acc, element];
+      }, []);
+      
+      return { elements: updatedElements, foundElement };
+    };
+
+    setElements((prev) => {
+      console.log('📋 Current elements before move:', prev);
+      
+      // 1. Encontrar y remover el elemento de su posición actual
+      const { elements: elementsAfterRemoval, foundElement } = findAndRemoveElement(prev, elementId);
+      
+      if (!foundElement) {
+        console.error('❌ Element not found:', elementId);
+        return prev;
+      }
+      
+      console.log('✅ Found element to move:', foundElement);
+      console.log('📋 Elements after removal:', elementsAfterRemoval);
+      
+      // 2. Si containerId es null, mover al canvas principal
+      if (containerId === null) {
+        console.log('🎯 Moving element to main canvas');
+        const updated = [...elementsAfterRemoval, foundElement];
+        console.log('📋 Final elements after move to canvas:', updated);
+        return updated;
+      }
+      
+      // 3. Si no, agregar el elemento al contenedor de destino
+      const updated = updateNestedElement(elementsAfterRemoval, containerId, (container) => {
+        console.log('🎯 Adding element to container:', container.id);
+        
+        const updatedContainer = {
+          ...container,
+          props: {
+            ...container.props,
+            children: [...(container.props.children || []), foundElement]
+          }
+        };
+        
+        console.log('✅ Container updated with new child');
+        return updatedContainer;
+      });
+      
+      console.log('📋 Final elements after move:', updated);
+      return updated;
+    });
+  }, []);
+
+  // Función para actualizar elementos
+  const updateElement = useCallback((updatedElement) => {
+    console.log('🚀 updateElement called with:', updatedElement.id);
+    
+    // Función recursiva para buscar y actualizar el elemento
+    const updateElementRecursively = (elements) => {
+      return elements.map(el => {
+        if (el.id === updatedElement.id) {
+          return updatedElement;
+        }
+        if (el.props?.children) {
+          return {
+            ...el,
+            props: {
+              ...el.props,
+              children: updateElementRecursively(el.props.children)
+            }
+          };
+        }
+        return el;
+      });
+    };
+    
+    setElements((prev) => updateElementRecursively(prev));
+    setSelectedElement(updatedElement);
+  }, []);
+
+  // Función para eliminar elementos
+  const deleteElement = useCallback((elementId, parentId = null) => {
+    if (parentId) {
+      // Eliminar de contenedor específico
+      setElements(prev => updateNestedElement(prev, parentId, (container) => ({
+        ...container,
+        props: {
+          ...container.props,
+          children: container.props.children?.filter(child => child.id !== elementId) || []
+        }
+      })));
+    } else {
+      // Eliminar del canvas principal
+      setElements(prev => prev.filter(element => element.id !== elementId));
+    }
+    
+    // Deseleccionar si era el elemento seleccionado
+    if (selectedElement?.id === elementId) {
+      setSelectedElement(null);
+    }
+  }, [selectedElement]);
+
+  // Función para duplicar elementos
+  const duplicateElement = useCallback((elementToDuplicate, parentId = null) => {
+    const duplicatedElement = {
+      ...elementToDuplicate,
+      id: `${elementToDuplicate.type}-${generateId()}`,
+      props: { ...elementToDuplicate.props }
+    };
+
+    if (parentId) {
+      // Duplicar en contenedor específico
+      setElements(prev => updateNestedElement(prev, parentId, (container) => ({
+        ...container,
+        props: {
+          ...container.props,
+          children: [...(container.props.children || []), duplicatedElement]
+        }
+      })));
+    } else {
+      // Duplicar en canvas principal
+      setElements(prev => [...prev, duplicatedElement]);
+    }
+
+    return duplicatedElement;
+  }, []);
+
+  // Función para agregar elemento en un índice específico (reordenamiento)
+  const addElementAtIndex = useCallback((elementTemplate, index) => {
+    console.log('🎯 addElementAtIndex:', elementTemplate.name, 'at index:', index);
+    
+    const newElement = {
+      id: `${elementTemplate.type}-${generateId()}`,
+      type: elementTemplate.type,
+      props: { ...elementTemplate.defaultProps },
+    };
+    
+    setElements(prev => {
+      const newElements = [...prev];
+      newElements.splice(index, 0, newElement);
+      return newElements;
+    });
+    
+    setSelectedElement(newElement);
+    return newElement;
+  }, []);
+
+  // Función para reordenar elementos en el canvas
+  const reorderElements = useCallback((fromIndex, toIndex) => {
+    console.log('🔄 reorderElements:', fromIndex, '->', toIndex);
+    
+    setElements(prev => {
+      const newElements = [...prev];
+      const [movedElement] = newElements.splice(fromIndex, 1);
+      newElements.splice(toIndex, 0, movedElement);
+      return newElements;
+    });
+  }, []);
 
   const handleAddElement = useCallback((elementTemplate) => {
     addElement(elementTemplate);
   }, [addElement]);
 
-  const handleAddElementAtIndex = useCallback((elementTemplate, index) => {
-    addElementAtIndex(elementTemplate, index);
-  }, [addElementAtIndex]);
-
-  const handleDeleteElement = useCallback((elementId) => {
-    deleteElement(elementId);
+  const handleDeleteElement = useCallback((elementId, parentId = null) => {
+    deleteElement(elementId, parentId);
   }, [deleteElement]);
 
-  const handleDuplicateElement = useCallback((elementId) => {
-    duplicateElementAtIndex(elementId);
-  }, [duplicateElementAtIndex]);
+  const handleDuplicateElement = useCallback((elementToDuplicate, parentId = null) => {
+    duplicateElement(elementToDuplicate, parentId);
+  }, [duplicateElement]);
 
-  const handleReorderElements = useCallback((fromIndex, toIndex) => {
-    console.log('Reordering elements from', fromIndex, 'to', toIndex);
-    reorderElementByIndex(elements[fromIndex].id, toIndex);
-  }, [elements, reorderElementByIndex]);
+  const handleSelectElement = useCallback((element) => {
+    setSelectedElement(element);
+  }, []);
 
   const handleSave = () => {
     console.log('Guardando página...', elements);
@@ -1122,16 +1360,16 @@ function Editor({ onExit }) {
           <Canvas 
             elements={elements}
             selectedElement={selectedElement}
-            onSelectElement={selectElement}
+            onSelectElement={handleSelectElement}
             viewportMode={viewportMode}
             onAddElement={handleAddElement}
-            onAddElementAtIndex={handleAddElementAtIndex}
             onDeleteElement={handleDeleteElement}
             onDuplicateElement={handleDuplicateElement}
-            onReorderElements={handleReorderElements}
             onAddToContainer={addToContainer}
             onMoveToContainer={moveToContainer}
             onUpdateElement={updateElement}
+            onAddElementAtIndex={addElementAtIndex}
+            onReorder={reorderElements}
           />
         </div>
 
