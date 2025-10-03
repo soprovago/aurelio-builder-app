@@ -18,11 +18,21 @@ export const availableElements = [
     icon: <FiGrid className="w-5 h-5" />,
     defaultProps: {
       children: [], // Array para elementos hijos
+      layout: 'vertical',
+      gap: '16px',
       padding: '20px',
-      minHeight: '150px',
       backgroundColor: 'transparent',
-      border: '2px dashed #d1d5db',
-      borderRadius: '8px'
+      borderRadius: '0px',
+      border: 'none',
+      minHeight: '100px',
+      alignment: 'left',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      alignItems: 'stretch',
+      flexWrap: 'nowrap',
+      width: '100%',
+      height: 'auto',
+      widthType: 'full'
     }
   },
   {

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useElementUtils } from './useElementUtils';
+import useElementUtils from './useElementUtils';
 
 /**
  * Hook para operaciones CRUD de elementos
@@ -8,7 +8,7 @@ import { useElementUtils } from './useElementUtils';
  * @param {Object} selectedElement - Elemento seleccionado actual
  * @param {Function} setSelectedElement - Función para actualizar elemento seleccionado
  */
-export function useElementOperations(elements, setElements, selectedElement, setSelectedElement) {
+function useElementOperations(elements, setElements, selectedElement, setSelectedElement) {
   const { updateNestedElement, findAndRemoveElement, generateId } = useElementUtils();
 
   /**
@@ -223,3 +223,5 @@ export function useElementOperations(elements, setElements, selectedElement, set
     reorderElements
   };
 }
+
+export default useElementOperations;

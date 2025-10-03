@@ -12,7 +12,7 @@ import Canvas from './Canvas';
 import AurelioLogo from '../../../components/shared/AurelioLogo';
 
 // Hook personalizado
-import { useBuilderState } from '../hooks/useBuilderState';
+import useBuilderState from '../hooks/useBuilderState';
 
 /**
  * Componente principal del Builder/Editor refactorizado

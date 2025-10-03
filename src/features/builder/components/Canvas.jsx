@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { VIEWPORT_MODES, VIEWPORT_CONFIGS } from '../../../constants/viewportConfigs';
-import { FiPlus, FiGrid } from 'react-icons/fi';
+import { FiGrid, FiPlus } from 'react-icons/fi';
+import { VIEWPORT_CONFIGS, VIEWPORT_MODES } from '../../../constants/viewportConfigs';
 import CanvasTemplateSystem from '../../../components/Editor/components/CanvasTemplateSystem';
+import CanvasElement from './CanvasElement';
 
 /**
  * Canvas principal del editor (versión simplificada)
@@ -110,17 +111,27 @@ function Canvas({
               </div>
             ) : (
               <>
-                {/* Aquí irían los elementos del canvas */}
+                {/* Elementos del canvas renderizados con CanvasElement modular */}
                 <div className="space-y-2 mb-8">
                   {elements.map((element, index) => (
-                    <div 
-                      key={element.id} 
-                      className="p-4 border border-gray-200 rounded"
-                      onClick={() => onSelectElement(element)}
-                    >
-                      <strong>Elemento:</strong> {element.type} ({element.id})
-                      {/* TODO: Aquí se renderizaría el CanvasElement refactorizado */}
-                    </div>
+                    <CanvasElement
+                      key={element.id}
+                      element={element}
+                      index={index}
+                      isSelected={selectedElement?.id === element.id}
+                      onSelect={onSelectElement}
+                      onDelete={onDeleteElement}
+                      onDuplicate={onDuplicateElement}
+                      onAddToContainer={onAddToContainer}
+                      onMoveToContainer={onMoveToContainer}
+                      selectedElement={selectedElement}
+                      viewportMode={viewportMode}
+                      onUpdateElement={onUpdateElement}
+                      onAddElementAtIndex={onAddElementAtIndex}
+                      onReorder={onReorder}
+                      onAddElement={onAddElement}
+                      allElements={elements}
+                    />
                   ))}
                 </div>
                 

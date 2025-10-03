@@ -1,7 +1,7 @@
 /**
  * Hook con utilidades para manipular elementos en la jerarquía
  */
-export function useElementUtils() {
+function useElementUtils() {
   /**
    * Función para buscar y actualizar elementos anidados recursivamente
    */
@@ -106,3 +106,5 @@ export function useElementUtils() {
     findAndRemoveElement
   };
 }
+
+export default useElementUtils;

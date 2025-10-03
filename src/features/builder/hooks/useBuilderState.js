@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react';
 import { VIEWPORT_MODES } from '../../../constants/viewportConfigs';
-import { useElementOperations } from './useElementOperations';
+import useElementOperations from './useElementOperations';
 
 /**
  * Hook principal para manejar el estado del editor/builder
  */
-export function useBuilderState() {
+function useBuilderState() {
   // Estado principal del editor
   const [elements, setElements] = useState([]);
   const [selectedElement, setSelectedElement] = useState(null);
@@ -80,3 +80,5 @@ export function useBuilderState() {
     handlePreview
   };
 }
+
+export default useBuilderState;
