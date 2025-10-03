@@ -1,5 +1,5 @@
 import React from 'react';
-import { ELEMENT_TYPES } from '../../../../constants/elementTypes';
+import { ELEMENT_TYPES } from '../../constants/elementTypes';
 import {
   FiType,
   FiImage,

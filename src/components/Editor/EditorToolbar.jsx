@@ -6,7 +6,7 @@ import {
   FiGlobe,
   FiEdit3
 } from 'react-icons/fi';
-import AurelioLogo from '../../../shared/AurelioLogo';
+import AurelioLogo from '../shared/AurelioLogo';
 import ViewportSelector from './ViewportSelector';
 
 /**

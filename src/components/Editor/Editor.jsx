@@ -1,9 +1,9 @@
 import React from 'react';
-import { useEditorState } from './hooks/useEditorState';
-import EditorToolbar from './components/EditorToolbar';
-import ElementsPanel from './components/ElementsPanel';
-import Canvas from '../../../features/builder/components/Canvas';
-import PropertiesPanel from '../../../features/builder/components/PropertiesPanel';
+import { useEditorState } from './useEditorState';
+import EditorToolbar from './EditorToolbar';
+import ElementsPanel from './ElementsPanel';
+import Canvas from '../../features/builder/components/Canvas';
+import PropertiesPanel from '../../features/builder/components/PropertiesPanel';
 
 /**
  * Editor refactorizado - Componente principal del editor
@@ -14,7 +14,7 @@ import PropertiesPanel from '../../../features/builder/components/PropertiesPane
  * - Hooks personalizados para lógica compleja
  * - Máximo 100 líneas por archivo
  */
-function RefactoredEditor({ onExit }) {
+function Editor({ onExit }) {
   const {
     elements,
     selectedElement,
@@ -92,4 +92,4 @@ function RefactoredEditor({ onExit }) {
   );
 }
 
-export default RefactoredEditor;
+export default Editor;

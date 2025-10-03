@@ -1,5 +1,5 @@
 import React from 'react';
-import { VIEWPORT_CONFIGS } from '../../../../constants/viewportConfigs';
+import { VIEWPORT_CONFIGS } from '../../constants/viewportConfigs';
 
 /**
  * Selector de modos de viewport (desktop, tablet, mobile)

@@ -1,5 +1,5 @@
 import React from 'react';
-import { availableElements } from '../data/availableElements';
+import { availableElements } from './availableElements';
 import PanelElement from './PanelElement';
 
 /**

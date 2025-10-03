@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { VIEWPORT_MODES } from '../../../../constants/viewportConfigs';
+import { VIEWPORT_MODES } from '../../constants/viewportConfigs';
 
 /**
  * Hook personalizado para manejar el estado del editor
