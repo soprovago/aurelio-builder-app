@@ -49,7 +49,7 @@ const availableElements = [
       border: 'none',
       minHeight: '100px',
       alignment: 'left',
-      children: [],
+      children: [], // Asegurar que children esté inicializado
       flexDirection: 'column',
       justifyContent: 'flex-start',
       alignItems: 'stretch',
@@ -242,10 +242,20 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
                 
                 if (data.type === 'panel-element') {
                   console.log('✅ Adding NEW element to main container:', element.id, 'Element:', data.element.name);
-                  onAddToContainer(element.id, data.element);
+                  console.log('🔍 onAddToContainer function:', typeof onAddToContainer, onAddToContainer);
+                  if (typeof onAddToContainer === 'function') {
+                    onAddToContainer(element.id, data.element);
+                  } else {
+                    console.error('❌ onAddToContainer is not a function!');
+                  }
                 } else if (data.type === 'canvas-element') {
                   console.log('✅ Moving EXISTING element to main container:', element.id, 'Element ID:', data.id);
-                  onMoveToContainer && onMoveToContainer(data.id, element.id);
+                  console.log('🔍 onMoveToContainer function:', typeof onMoveToContainer, onMoveToContainer);
+                  if (typeof onMoveToContainer === 'function') {
+                    onMoveToContainer(data.id, element.id);
+                  } else {
+                    console.error('❌ onMoveToContainer is not a function!');
+                  }
                 } else {
                   console.log('❌ Canvas Container drag data type not recognized:', data.type);
                 }
@@ -440,6 +450,17 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
 
   const [dragOverPosition, setDragOverPosition] = useState(null); // 'top' or 'bottom'
 
+  // Agregar logs para verificar que las props están llegando
+  useEffect(() => {
+    console.log('🔍 CanvasElement props check:', {
+      elementId: element.id,
+      elementType: element.type,
+      hasOnAddToContainer: typeof onAddToContainer,
+      hasOnMoveToContainer: typeof onMoveToContainer,
+      isContainer: element.type === ELEMENT_TYPES.CONTAINER
+    });
+  }, [element.id, onAddToContainer, onMoveToContainer]);
+
   // Manejador para agregar contenedor debajo del elemento actual
   const handleAddContainer = (containerElement) => {
     if (typeof onAddElementAtIndex === 'function') {
@@ -449,26 +470,30 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
   };
 
   const handleDragStart = (e) => {
+    console.log('🚀 CanvasElement drag started:', element.type, element.id);
     setIsDragging(true);
     setIsMenuOpen(false); // Cerrar menú al iniciar drag
     e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'canvas-element', id: element.id, index }));
     e.dataTransfer.effectAllowed = 'move';
     
-    // Crear imagen personalizada de arrastre
-    const dragImage = e.currentTarget.cloneNode(true);
-    dragImage.style.opacity = '0.7';
-    dragImage.style.transform = 'rotate(5deg)';
-    dragImage.style.position = 'absolute';
-    dragImage.style.top = '-1000px';
-    document.body.appendChild(dragImage);
-    e.dataTransfer.setDragImage(dragImage, 50, 20);
-    
-    // Limpiar después
-    setTimeout(() => {
-      if (document.body.contains(dragImage)) {
-        document.body.removeChild(dragImage);
-      }
-    }, 0);
+    // No crear imagen personalizada para contenedores ya que puede interferir
+    if (element.type !== ELEMENT_TYPES.CONTAINER) {
+      // Crear imagen personalizada de arrastre solo para elementos no-contenedores
+      const dragImage = e.currentTarget.cloneNode(true);
+      dragImage.style.opacity = '0.7';
+      dragImage.style.transform = 'rotate(5deg)';
+      dragImage.style.position = 'absolute';
+      dragImage.style.top = '-1000px';
+      document.body.appendChild(dragImage);
+      e.dataTransfer.setDragImage(dragImage, 50, 20);
+      
+      // Limpiar después
+      setTimeout(() => {
+        if (document.body.contains(dragImage)) {
+          document.body.removeChild(dragImage);
+        }
+      }, 0);
+    }
   };
 
   const handleDragEnd = () => {
@@ -554,12 +579,12 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
       {/* Elemento principal */}
       <div
         ref={dragRef}
-        draggable
+        draggable={true} // Hacer todos los elementos draggable
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        onDragOver={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragOver} // Solo contenedores manejan su propio dragOver
+        onDragLeave={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragLeave}
+        onDrop={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDrop}
         onMouseEnter={() => setShowAddButton(true)}
         onMouseLeave={() => setShowAddButton(false)}
         className={`relative group ${
