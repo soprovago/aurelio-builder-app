@@ -25,6 +25,13 @@ function CanvasElementRenderer({
   onAddElement
 }) {
   
+  console.log('🟡 CanvasElementRenderer rendered for:', {
+    elementId: element.id,
+    elementType: element.type,
+    hasOnSelect: !!onSelect,
+    selectedElementId: selectedElement?.id
+  });
+  
   // Función para renderizar elementos básicos (no contenedores)
   const renderBasicElement = (elementData) => {
     const { type, props } = elementData;
@@ -135,14 +142,6 @@ function CanvasElementRenderer({
 
     return (
       <div
-        onClick={(e) => {
-          // Solo seleccionar el contenedor si no se clickea un hijo
-          const isChildClick = e.target !== e.currentTarget;
-          if (!isChildClick && onSelect) {
-            e.stopPropagation();
-            onSelect(element);
-          }
-        }}
         onDragOver={handleContainerDragOver}
         onDragLeave={handleContainerDragLeave}
         onDrop={handleContainerDrop}
@@ -190,90 +189,32 @@ function CanvasElementRenderer({
         {hasChildren ? (
           <div className="w-full">
             <div className="space-y-2">
-              {/* Renderizar elementos hijos usando componentes temporales hasta resolver circular import */}
-              {props.children.map((child, childIndex) => (
-                <div
-                  key={child.id}
-                  className={`relative group transition-all cursor-pointer ${
-                    selectedElement?.id === child.id 
-                      ? 'ring-2 ring-[#8b5cf6]' 
-                      : 'hover:ring-2 hover:ring-[#8b5cf6] hover:ring-opacity-30'
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onSelect) {
-                      onSelect(child);
-                    }
-                  }}
-                >
-                  {/* Renderizar el elemento hijo */}
-                  <div className="relative">
-                    {child.type === ELEMENT_TYPES.CONTAINER ? (
-                      <CanvasElementRenderer
-                        element={child}
-                        allElements={allElements}
-                        selectedElement={selectedElement}
-                        isDragOver={false}
-                        onAddToContainer={onAddToContainer}
-                        onMoveToContainer={onMoveToContainer}
-                        onSelect={onSelect}
-                        onDelete={onDelete}
-                        onDuplicate={onDuplicate}
-                        viewportMode={viewportMode}
-                        onUpdateElement={onUpdateElement}
-                        onAddElementAtIndex={onAddElementAtIndex}
-                        onReorder={onReorder}
-                        onAddElement={onAddElement}
-                      />
-                    ) : (
-                      <CanvasElementRenderer
-                        element={child}
-                        allElements={allElements}
-                        selectedElement={selectedElement}
-                        isDragOver={false}
-                        onAddToContainer={onAddToContainer}
-                        onMoveToContainer={onMoveToContainer}
-                        onSelect={onSelect}
-                        onDelete={onDelete}
-                        onDuplicate={onDuplicate}
-                        viewportMode={viewportMode}
-                        onUpdateElement={onUpdateElement}
-                        onAddElementAtIndex={onAddElementAtIndex}
-                        onReorder={onReorder}
-                        onAddElement={onAddElement}
-                      />
-                    )}
-                    
-                    {/* Menú contextual para elementos hijos */}
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onDuplicate) onDuplicate(child.id);
-                        }}
-                        className="p-1 bg-gray-800 bg-opacity-80 text-white rounded hover:bg-gray-700 shadow-lg transition-colors mr-1"
-                        title="Duplicar"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onDelete) onDelete(child.id);
-                        }}
-                        className="p-1 bg-gray-800 bg-opacity-80 text-red-400 rounded hover:bg-gray-700 shadow-lg transition-colors"
-                        title="Eliminar"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {/* Renderizar elementos hijos IGUAL que Canvas - usando CanvasElement */}
+              {props.children.map((child, childIndex) => {
+                // Importación dinámica para evitar circular import
+                const CanvasElement = require('./CanvasElement').default;
+                
+                return (
+                  <CanvasElement
+                    key={child.id}
+                    element={child}
+                    index={childIndex}
+                    isSelected={selectedElement?.id === child.id}
+                    onSelect={onSelect}
+                    onDelete={onDelete}
+                    onDuplicate={onDuplicate}
+                    onAddToContainer={onAddToContainer}
+                    onMoveToContainer={onMoveToContainer}
+                    selectedElement={selectedElement}
+                    viewportMode={viewportMode}
+                    onUpdateElement={onUpdateElement}
+                    onAddElementAtIndex={onAddElementAtIndex}
+                    onReorder={onReorder}
+                    onAddElement={onAddElement}
+                    allElements={allElements}
+                  />
+                );
+              })}
             </div>
           </div>
         ) : (
@@ -295,11 +236,40 @@ function CanvasElementRenderer({
     );
   };
   
-  // Renderizado principal basado en el tipo de elemento
+  // DEBUG: Usar componente simple para probar selección
+  const TestElement = require('./TestElement').default;
+  
   if (element.type === ELEMENT_TYPES.CONTAINER) {
-    return renderContainer();
+    const hasChildren = element.props.children && element.props.children.length > 0;
+    
+    return (
+      <TestElement 
+        element={element} 
+        isSelected={selectedElement?.id === element.id}
+        onSelect={onSelect}
+      >
+        {hasChildren && (
+          <div className="space-y-2">
+            {element.props.children.map((child) => (
+              <TestElement
+                key={child.id}
+                element={child}
+                isSelected={selectedElement?.id === child.id}
+                onSelect={onSelect}
+              />
+            ))}
+          </div>
+        )}
+      </TestElement>
+    );
   } else {
-    return renderBasicElement(element);
+    return (
+      <TestElement 
+        element={element} 
+        isSelected={selectedElement?.id === element.id}
+        onSelect={onSelect}
+      />
+    );
   }
 }
 

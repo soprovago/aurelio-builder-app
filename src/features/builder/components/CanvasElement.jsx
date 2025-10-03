@@ -75,7 +75,12 @@ function CanvasElement({
         } ${
           dragOverPosition ? 'ring-2 ring-[#8b5cf6] ring-opacity-50' : 'hover:ring-2 hover:ring-[#8b5cf6] hover:ring-opacity-30'
         } transition-all cursor-grab active:cursor-grabbing`}
-        onClick={handleElementClick}
+        onClick={(e) => {
+          // Permitir clic para seleccionar solo si no estamos arrastrando
+          if (!isDragging) {
+            onSelect(element);
+          }
+        }}
       >
         <div className={`relative ${
           element.type === ELEMENT_TYPES.CONTAINER ? 'pointer-events-auto' : 'pointer-events-none'
@@ -101,7 +106,7 @@ function CanvasElement({
           
           {/* Handle de arrastre */}
           <DragHandle 
-            className={showControls ? "opacity-0 group-hover:opacity-100" : "opacity-0"} 
+            className={showControls ? "opacity-0 group-hover:opacity-100 pointer-events-auto" : "opacity-0"} 
           />
           
           {/* Menú contextual */}
@@ -110,7 +115,7 @@ function CanvasElement({
             onDuplicate={onDuplicate}
             onDelete={onDelete}
             isVisible={showControls}
-            className={showControls ? "opacity-0 group-hover:opacity-100" : "opacity-0"}
+            className={showControls ? "opacity-0 group-hover:opacity-100 pointer-events-auto" : "opacity-0"}
           />
           
           {/* Overlay para indicar que es arrastrable */}

@@ -30,8 +30,14 @@ function useBuilderState() {
   }, [elementOperations.duplicateElement]);
 
   const handleSelectElement = useCallback((element) => {
+    console.log('🔵 handleSelectElement called with:', {
+      elementId: element?.id,
+      elementType: element?.type,
+      currentSelected: selectedElement?.id
+    });
     setSelectedElement(element);
-  }, []);
+    console.log('🔵 State updated - new selected:', element?.id);
+  }, [selectedElement]);
 
   const handleUpdateElement = useCallback((updatedElement) => {
     elementOperations.updateElement(updatedElement);
