@@ -1,6 +1,7 @@
 import React from 'react';
 import { FiGrid, FiInbox, FiTarget } from 'react-icons/fi';
 import { ELEMENT_TYPES } from '../../../constants/elementTypes';
+import ContainerChild from '../../../components/Editor/components/ContainerChild';
 
 /**
  * CanvasElementRenderer - Componente especializado para renderizar elementos específicos
@@ -183,8 +184,6 @@ function CanvasElementRenderer({
             <div className="space-y-2">
               {/* Usar ContainerChild para elementos hijos */}
               {props.children.map((child, childIndex) => {
-                const ContainerChild = require('../../../components/Editor/components/ContainerChild').default;
-                
                 return (
                   <ContainerChild
                     key={child.id}

@@ -20,7 +20,10 @@ function Canvas({
   onMoveToContainer, 
   onUpdateElement, 
   onAddElementAtIndex, 
-  onReorder 
+  onReorder,
+  onAddContainerStructure,
+  onLoadTemplate,
+  onUploadTemplate
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
@@ -108,9 +111,9 @@ function Canvas({
                 </div>
                 
                 <CanvasTemplateSystem
-                  onAddContainerStructure={(structure) => console.log('Add container structure:', structure)}
-                  onLoadTemplate={(template) => console.log('Load template:', template)}
-                  onUploadTemplate={(template) => console.log('Upload template:', template)}
+                  onAddContainerStructure={onAddContainerStructure}
+                  onLoadTemplate={onLoadTemplate}
+                  onUploadTemplate={onUploadTemplate}
                 />
               </div>
             ) : (
@@ -147,9 +150,9 @@ function Canvas({
                 {/* Sistema de plantillas siempre visible */}
                 <div className="border-t border-gray-200 pt-6">
                   <CanvasTemplateSystem
-                    onAddContainerStructure={(structure) => console.log('Add container structure:', structure)}
-                    onLoadTemplate={(template) => console.log('Load template:', template)}
-                    onUploadTemplate={(template) => console.log('Upload template:', template)}
+                    onAddContainerStructure={onAddContainerStructure}
+                    onLoadTemplate={onLoadTemplate}
+                    onUploadTemplate={onUploadTemplate}
                   />
                 </div>
               </>

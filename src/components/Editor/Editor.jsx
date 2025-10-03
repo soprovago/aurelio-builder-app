@@ -27,6 +27,9 @@ function Editor({ onExit }) {
     updateElement,
     addToContainer,
     moveToContainer,
+    addContainerStructure,
+    loadTemplate,
+    uploadTemplate,
   } = useEditorState();
 
   // Handlers del toolbar
@@ -79,6 +82,9 @@ function Editor({ onExit }) {
             onUpdateElement={updateElement}
             onAddElementAtIndex={() => {}}
             onReorder={() => {}}
+            onAddContainerStructure={addContainerStructure}
+            onLoadTemplate={loadTemplate}
+            onUploadTemplate={uploadTemplate}
           />
         </div>
 

@@ -166,6 +166,71 @@ export function useEditorState() {
     });
   }, [updateNestedElement]);
 
+  // Función para agregar estructuras de contenedores
+  const addContainerStructure = useCallback((structure) => {
+    console.log('🏗️ Adding container structure:', structure);
+    
+    const newStructure = {
+      ...structure,
+      id: `${structure.type}-${generateId()}`,
+    };
+    
+    // Si la estructura tiene hijos, generar IDs únicos recursivamente
+    if (structure.props?.children) {
+      const generateIdsForChildren = (children) => {
+        return children.map(child => ({
+          ...child,
+          id: `${child.type}-${generateId()}`,
+          props: {
+            ...child.props,
+            children: child.props?.children ? generateIdsForChildren(child.props.children) : []
+          }
+        }));
+      };
+      
+      newStructure.props = {
+        ...newStructure.props,
+        children: generateIdsForChildren(structure.props.children)
+      };
+    }
+    
+    setElements(prev => [...prev, newStructure]);
+    setSelectedElement(newStructure);
+    
+    return newStructure;
+  }, [generateId]);
+
+  // Función para cargar plantillas
+  const loadTemplate = useCallback((template) => {
+    console.log('📚 Loading template:', template.name);
+    
+    // Aquí podrías implementar la lógica para cargar plantillas
+    // Por ahora, simplemente agregamos un elemento de ejemplo
+    if (template.elements) {
+      setElements(template.elements);
+    } else {
+      console.warn('Template does not have elements array');
+    }
+  }, []);
+
+  // Función para subir plantillas JSON
+  const uploadTemplate = useCallback((template) => {
+    console.log('📁 Uploading template:', template);
+    
+    try {
+      if (template.elements && Array.isArray(template.elements)) {
+        setElements(template.elements);
+        setSelectedElement(null);
+      } else {
+        console.error('Invalid template format');
+        alert('El formato del archivo JSON no es válido');
+      }
+    } catch (error) {
+      console.error('Error uploading template:', error);
+      alert('Error al cargar la plantilla');
+    }
+  }, []);
+
   return {
     // Estado
     elements,
@@ -189,5 +254,10 @@ export function useEditorState() {
     // Operaciones de contenedor
     addToContainer,
     moveToContainer,
+    
+    // Operaciones de templates y estructuras
+    addContainerStructure,
+    loadTemplate,
+    uploadTemplate,
   };
 }
