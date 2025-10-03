@@ -1,5 +1,3 @@
-import React from 'react';
-import { FiGrid, FiType, FiImage, FiSquare } from 'react-icons/fi';
 import { ELEMENT_TYPES } from './elementTypes';
 
 /**
@@ -9,7 +7,7 @@ import { ELEMENT_TYPES } from './elementTypes';
  * - id: identificador único
  * - type: tipo de elemento (debe coincidir con ELEMENT_TYPES)
  * - name: nombre visible al usuario
- * - icon: icono JSX para mostrar en la UI
+ * - iconName: nombre del icono (se renderiza en ElementsPanel)
  * - defaultProps: propiedades por defecto al crear el elemento
  */
 export const availableElements = [
@@ -17,7 +15,7 @@ export const availableElements = [
     id: 'container',
     type: ELEMENT_TYPES.CONTAINER,
     name: 'Contenedor',
-    icon: <FiGrid className="w-5 h-5" />,
+    iconName: 'FiGrid',
     defaultProps: {
       children: [], // Array para elementos hijos
       layout: 'vertical',
@@ -41,7 +39,7 @@ export const availableElements = [
     id: 'heading',
     type: ELEMENT_TYPES.HEADING,
     name: 'Encabezado',
-    icon: <FiType className="w-5 h-5" />,
+    iconName: 'FiType',
     defaultProps: {
       text: 'Tu Encabezado Aquí',
       level: 1,
@@ -54,7 +52,7 @@ export const availableElements = [
     id: 'text',
     type: ELEMENT_TYPES.TEXT,
     name: 'Texto',
-    icon: <FiType className="w-5 h-5" />,
+    iconName: 'FiType',
     defaultProps: {
       text: 'Tu texto aquí. Puedes editarlo haciendo clic.',
       alignment: 'left',
@@ -66,7 +64,7 @@ export const availableElements = [
     id: 'image',
     type: ELEMENT_TYPES.IMAGE,
     name: 'Imagen',
-    icon: <FiImage className="w-5 h-5" />,
+    iconName: 'FiImage',
     defaultProps: {
       src: '/api/placeholder/400/300',
       alt: 'Imagen',
@@ -78,7 +76,7 @@ export const availableElements = [
     id: 'button',
     type: ELEMENT_TYPES.BUTTON,
     name: 'Botón',
-    icon: <FiSquare className="w-5 h-5" />,
+    iconName: 'FiSquare',
     defaultProps: {
       text: 'Haz Clic Aquí',
       link: '#',

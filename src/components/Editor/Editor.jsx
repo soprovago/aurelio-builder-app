@@ -34,36 +34,7 @@ import {
   FiTarget
 } from 'react-icons/fi';
 import AddContainerButton from './components/AddContainerButton';
-import PanelElement from './components/PanelElement';
-import { availableElements } from '../../constants/availableElements';
-
-// Panel de elementos disponibles
-function ElementsPanel({ onAddElement }) {
-  const handleElementClick = (element, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onAddElement(element);
-  };
-
-  return (
-    <div className="w-64 bg-[#1a1a1a] border-r border-[#2a2a2a] p-4">
-      <h3 className="text-white font-semibold mb-4">Elementos</h3>
-      <div className="text-xs text-gray-400 mb-3">
-        Haz clic o arrastra para agregar
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {availableElements.map((element) => (
-          <div key={element.id} className="relative">
-            <PanelElement 
-              element={element} 
-              onClick={(e) => handleElementClick(element, e)}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import ElementsPanel from './components/ElementsPanel';
 
 // Componente CanvasElement (elemento individual en canvas)
 function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder, allElements }) {
