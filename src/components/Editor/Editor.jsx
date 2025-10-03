@@ -340,76 +340,159 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     }
   };
 
+  const [dragOverPosition, setDragOverPosition] = useState(null); // 'top' or 'bottom'
+
   const handleDragStart = (e) => {
     setIsDragging(true);
     e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'canvas-element', id: element.id, index }));
     e.dataTransfer.effectAllowed = 'move';
+    
+    // Crear imagen personalizada de arrastre
+    const dragImage = e.currentTarget.cloneNode(true);
+    dragImage.style.opacity = '0.7';
+    dragImage.style.transform = 'rotate(5deg)';
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-1000px';
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, 50, 20);
+    
+    // Limpiar después
+    setTimeout(() => {
+      if (document.body.contains(dragImage)) {
+        document.body.removeChild(dragImage);
+      }
+    }, 0);
   };
 
   const handleDragEnd = () => {
     setIsDragging(false);
+    setDragOverPosition(null);
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
+    
+    // Determinar si estamos en la mitad superior o inferior
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseY = e.clientY;
+    const elementMiddle = rect.top + rect.height / 2;
+    
+    setDragOverPosition(mouseY < elementMiddle ? 'top' : 'bottom');
+  };
+
+  const handleDragLeave = (e) => {
+    // Solo limpiar si realmente salimos del elemento
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setDragOverPosition(null);
+    }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-    if (data.type === 'canvas-element' && data.id !== element.id) {
-      onReorder(data.index, index);
+    e.stopPropagation();
+    setDragOverPosition(null);
+    
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.type === 'canvas-element' && data.id !== element.id) {
+        // Calcular el índice de destino basado en la posición
+        let targetIndex = index;
+        if (dragOverPosition === 'bottom') {
+          targetIndex = index + 1;
+        }
+        
+        onReorder(data.index, targetIndex);
+      }
+    } catch (error) {
+      console.error('Error handling drop:', error);
     }
   };
 
   return (
-    <div
-      ref={dragRef}
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      className={`relative group ${isSelected ? 'ring-2 ring-[#8b5cf6]' : ''} ${
-        isDragging ? 'opacity-70' : ''
-      } hover:ring-2 hover:ring-[#8b5cf6] transition-all cursor-pointer`}
-      onClick={() => onSelect(element)}
-    >
-      <div className="relative">
-        {renderElement()}
-        
-        {/* Handle de arrastre */}
-        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="p-1 bg-[#8b5cf6] text-white rounded hover:bg-[#7c3aed] cursor-grab active:cursor-grabbing">
-            <FiMove className="w-3 h-3" />
+    <div className="relative">
+      {/* Indicador de drop en la parte superior */}
+      {dragOverPosition === 'top' && (
+        <div className="absolute -top-1 left-0 right-0 z-50">
+          <div className="h-1 bg-[#8b5cf6] rounded-full shadow-lg">
+            <div className="absolute -left-1 -top-1 w-3 h-3 bg-[#8b5cf6] rounded-full" />
+            <div className="absolute -right-1 -top-1 w-3 h-3 bg-[#8b5cf6] rounded-full" />
           </div>
         </div>
-        
-        {/* Botones de acción */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDuplicate(element.id);
-            }}
-            className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-            title="Duplicar"
-          >
-            <FiCopy className="w-3 h-3" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(element.id);
-            }}
-            className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
-            title="Eliminar"
-          >
-            <FiTrash2 className="w-3 h-3" />
-          </button>
+      )}
+      
+      {/* Elemento principal */}
+      <div
+        ref={dragRef}
+        draggable
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`relative group ${
+          isSelected ? 'ring-2 ring-[#8b5cf6]' : ''
+        } ${
+          isDragging ? 'opacity-50 scale-95' : ''
+        } ${
+          dragOverPosition ? 'ring-2 ring-[#8b5cf6] ring-opacity-50' : 'hover:ring-2 hover:ring-[#8b5cf6] hover:ring-opacity-30'
+        } transition-all cursor-grab active:cursor-grabbing`}
+        onClick={(e) => {
+          // Permitir clic para seleccionar solo si no estamos arrastrando
+          if (!isDragging) {
+            onSelect(element);
+          }
+        }}
+      >
+        <div className="relative pointer-events-none">
+          {renderElement()}
+          
+          {/* Handle de arrastre */}
+          <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
+            <div className="p-1">
+              <FiMove className="w-3 h-3 text-black drop-shadow-sm" />
+            </div>
+          </div>
+          
+          {/* Botones de acción */}
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 pointer-events-auto">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDuplicate(element.id);
+              }}
+              className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 shadow-lg"
+              title="Duplicar"
+            >
+              <FiCopy className="w-3 h-3" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(element.id);
+              }}
+              className="p-1 bg-red-500 text-white rounded hover:bg-red-600 shadow-lg"
+              title="Eliminar"
+            >
+              <FiTrash2 className="w-3 h-3" />
+            </button>
+          </div>
+          
+          {/* Overlay para indicar que es arrastrable */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-5 bg-[#8b5cf6] transition-opacity pointer-events-none" />
         </div>
       </div>
+      
+      {/* Indicador de drop en la parte inferior */}
+      {dragOverPosition === 'bottom' && (
+        <div className="absolute -bottom-1 left-0 right-0 z-50">
+          <div className="h-1 bg-[#8b5cf6] rounded-full shadow-lg">
+            <div className="absolute -left-1 -top-1 w-3 h-3 bg-[#8b5cf6] rounded-full" />
+            <div className="absolute -right-1 -top-1 w-3 h-3 bg-[#8b5cf6] rounded-full" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
