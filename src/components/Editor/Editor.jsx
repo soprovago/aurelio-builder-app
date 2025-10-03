@@ -284,7 +284,13 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               setIsDragOver(true);
               return false;
             }}
-            className={`relative transition-all duration-300 ease-in-out ${
+            onClick={(e) => {
+              console.log('🎯 SOLUCIÓN DIRECTA: Click en contenedor:', element.id);
+              e.stopPropagation();
+              e.preventDefault();
+              onSelect(element);
+            }}
+            className={`relative transition-all duration-300 ease-in-out cursor-pointer ${
               isDragOver 
                 ? 'shadow-lg transform scale-[1.02]' 
                 : 'hover:shadow-md'
@@ -325,24 +331,34 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               <div className="w-full">
                 <div className="space-y-2">
                   {element.props.children.map((child, childIndex) => (
-                    <CanvasElement
+                    <div 
                       key={child.id}
-                      element={child}
-                      index={childIndex}
-                      isSelected={selectedElement?.id === child.id}
-                      onSelect={onSelect}
-                      onDelete={onDelete}
-                      onDuplicate={onDuplicate}
-                      onAddToContainer={onAddToContainer}
-                      onMoveToContainer={onMoveToContainer}
-                      selectedElement={selectedElement}
-                      viewportMode={viewportMode}
-                      onUpdateElement={onUpdateElement}
-                      onAddElementAtIndex={onAddElementAtIndex}
-                      onReorder={onReorder}
-                      onAddElement={onAddElement}
-                      allElements={allElements}
-                    />
+                      onClick={(e) => {
+                        console.log('🎯 SOLUCIÓN DIRECTA: Click en wrapper del hijo:', child.id);
+                        e.stopPropagation();
+                        e.preventDefault();
+                        onSelect(child);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <CanvasElement
+                        element={child}
+                        index={childIndex}
+                        isSelected={selectedElement?.id === child.id}
+                        onSelect={onSelect}
+                        onDelete={onDelete}
+                        onDuplicate={onDuplicate}
+                        onAddToContainer={onAddToContainer}
+                        onMoveToContainer={onMoveToContainer}
+                        selectedElement={selectedElement}
+                        viewportMode={viewportMode}
+                        onUpdateElement={onUpdateElement}
+                        onAddElementAtIndex={onAddElementAtIndex}
+                        onReorder={onReorder}
+                        onAddElement={onAddElement}
+                        allElements={allElements}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>

@@ -24,14 +24,6 @@ function CanvasElementRenderer({
   onReorder,
   onAddElement
 }) {
-  
-  console.log('🟡 CanvasElementRenderer rendered for:', {
-    elementId: element.id,
-    elementType: element.type,
-    hasOnSelect: !!onSelect,
-    selectedElementId: selectedElement?.id
-  });
-  
   // Función para renderizar elementos básicos (no contenedores)
   const renderBasicElement = (elementData) => {
     const { type, props } = elementData;
@@ -189,29 +181,24 @@ function CanvasElementRenderer({
         {hasChildren ? (
           <div className="w-full">
             <div className="space-y-2">
-              {/* Renderizar elementos hijos IGUAL que Canvas - usando CanvasElement */}
+              {/* Usar ContainerChild para elementos hijos */}
               {props.children.map((child, childIndex) => {
-                // Importación dinámica para evitar circular import
-                const CanvasElement = require('./CanvasElement').default;
+                const ContainerChild = require('../../../components/Editor/components/ContainerChild').default;
                 
                 return (
-                  <CanvasElement
+                  <ContainerChild
                     key={child.id}
                     element={child}
-                    index={childIndex}
-                    isSelected={selectedElement?.id === child.id}
                     onSelect={onSelect}
-                    onDelete={onDelete}
-                    onDuplicate={onDuplicate}
+                    onDelete={(childId) => onDelete(childId, element.id)}
+                    onDuplicate={(childElement) => onDuplicate(childElement, element.id)}
+                    isSelected={selectedElement?.id === child.id}
                     onAddToContainer={onAddToContainer}
                     onMoveToContainer={onMoveToContainer}
                     selectedElement={selectedElement}
                     viewportMode={viewportMode}
+                    parentElement={element}
                     onUpdateElement={onUpdateElement}
-                    onAddElementAtIndex={onAddElementAtIndex}
-                    onReorder={onReorder}
-                    onAddElement={onAddElement}
-                    allElements={allElements}
                   />
                 );
               })}
@@ -236,40 +223,12 @@ function CanvasElementRenderer({
     );
   };
   
-  // DEBUG: Usar componente simple para probar selección
-  const TestElement = require('./TestElement').default;
-  
+  // Renderizado principal basado en el tipo de elemento
   if (element.type === ELEMENT_TYPES.CONTAINER) {
-    const hasChildren = element.props.children && element.props.children.length > 0;
-    
-    return (
-      <TestElement 
-        element={element} 
-        isSelected={selectedElement?.id === element.id}
-        onSelect={onSelect}
-      >
-        {hasChildren && (
-          <div className="space-y-2">
-            {element.props.children.map((child) => (
-              <TestElement
-                key={child.id}
-                element={child}
-                isSelected={selectedElement?.id === child.id}
-                onSelect={onSelect}
-              />
-            ))}
-          </div>
-        )}
-      </TestElement>
-    );
+    return renderContainer();
   } else {
-    return (
-      <TestElement 
-        element={element} 
-        isSelected={selectedElement?.id === element.id}
-        onSelect={onSelect}
-      />
-    );
+    // Para elementos básicos, solo renderizar (la selección se maneja en CanvasElement)
+    return renderBasicElement(element);
   }
 }
 

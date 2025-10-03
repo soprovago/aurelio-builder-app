@@ -256,6 +256,19 @@ function ContainerChild({
   // Todos los elementos deben ser draggable, incluyendo contenedores
   const shouldBeDraggable = true;
 
+  // Handler simplificado para la selección de elementos
+  const handleElementClick = (e) => {
+    console.log('🎯 ContainerChild click:', {
+      elementId: element.id,
+      elementType: element.type,
+      isSelected,
+      parentId: parentElement?.id
+    });
+    
+    // IMPORTANTE: No usar stopPropagation aquí porque interfiere con la solución del wrapper en Editor.jsx
+    onSelect(element);
+  };
+
   return (
     <div
       ref={childRef}
@@ -265,12 +278,8 @@ function ContainerChild({
       className={`relative group/item ${isSelected ? 'ring-2 ring-[#8b5cf6]' : ''} ${
         isDragging ? 'opacity-70' : ''
       } hover:ring-2 hover:ring-[#8b5cf6] transition-all`}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(element);
-      }}
+      onClick={handleElementClick}
     >
-      {renderChildElement()}
       
       {/* Overlay de herramientas para elementos hijo */}
       <div className="absolute top-1 right-1 opacity-0 group-hover/item:opacity-100 transition-opacity pointer-events-none">
