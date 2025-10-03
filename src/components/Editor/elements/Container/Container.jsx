@@ -78,7 +78,6 @@ function Container({
         <div className="flex items-center justify-center py-12 text-gray-400 select-none">
           <div className="text-center">
             <FiGrid className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-medium">Contenedor vacío</p>
             <p className="text-xs">Arrastra elementos aquí</p>
           </div>
         </div>

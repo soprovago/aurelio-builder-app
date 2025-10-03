@@ -303,23 +303,6 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               position: 'relative'
             }}
           >
-            {/* Indicador de profundidad */}
-            {containerDepth > 0 && (
-              <div className="absolute top-2 left-2 z-10">
-                <div className="flex items-center gap-1 px-2 py-1 bg-gray-700 text-white text-xs rounded-full">
-                  <FiGrid className="w-3 h-3" />
-                  <span>Nivel {containerDepth + 1}</span>
-                </div>
-              </div>
-            )}
-            
-            {/* Badge de contenedor con contador de hijos */}
-            <div className="absolute top-2 right-2 z-10">
-              <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full border border-blue-200">
-                <FiPackage className="w-3 h-3" />
-                <span>{hasChildren ? `${element.props.children.length} elemento${element.props.children.length !== 1 ? 's' : ''}` : 'Vacío'}</span>
-              </div>
-            </div>
             
             {/* Overlay de drop activo mejorado */}
             {isDragOver && (
@@ -330,9 +313,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
                   </div>
                   <div className="flex flex-col">
                     <span className="font-semibold text-sm">Soltar elemento aquí</span>
-                    <span className="text-blue-200 text-xs">
-                      {containerDepth > 0 ? `Nivel ${containerDepth + 1}` : 'Contenedor principal'} • {hasChildren ? `${element.props.children.length} elementos` : 'Vacío'}
-                    </span>
+                    <span className="text-blue-200 text-xs">Contenedor</span>
                   </div>
                 </div>
               </div>

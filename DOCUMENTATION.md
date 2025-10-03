@@ -1,439 +1,515 @@
-# 📖 Documentación de Avances - Aurelio Builder App
+# 📚 AURELIO BUILDER - DOCUMENTACIÓN COMPLETA
 
-## 🎯 **Estado Actual del Proyecto**
-
-Hemos completado exitosamente la migración y creación de la aplicación independiente **Aurelio Builder** con una arquitectura sólida y funcional.
+## 📋 Índice
+- [Resumen del Proyecto](#resumen-del-proyecto)
+- [Funcionalidades Implementadas](#funcionalidades-implementadas)
+- [Refactorización Arquitectónica](#refactorización-arquitectónica)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Componentes y Hooks](#componentes-y-hooks)
+- [Sistema de Contenedores](#sistema-de-contenedores)
+- [Guía de Desarrollo](#guía-de-desarrollo)
+- [Próximos Pasos](#próximos-pasos)
 
 ---
 
-## 🏗️ **Arquitectura Completada**
+## 🎯 Resumen del Proyecto
 
-### **1. Estructura de Archivos**
+**Aurelio Builder** es un **Website Builder visual** desarrollado en React que permite crear páginas web mediante drag & drop con soporte completo para contenedores anidados y jerarquía de elementos.
+
+### 🔧 Tecnologías Principales
+- **React 18** con Hooks
+- **React Router** para navegación
+- **Tailwind CSS** para estilos
+- **Feather Icons** para iconografía
+- **Vite** como bundler
+- **Firebase** para autenticación (configurado)
+
+### 🎨 Características Clave
+- ✅ **Editor visual drag & drop**
+- ✅ **Contenedores anidados**
+- ✅ **Viewport responsive** (desktop, tablet, mobile)
+- ✅ **Panel de propiedades dinámico**
+- ✅ **Sistema de plantillas**
+- ✅ **Arquitectura modular feature-based**
+
+---
+
+## 🚀 Funcionalidades Implementadas
+
+### 1. **Sistema de Autenticación**
+- ✅ Login con Firebase Auth
+- ✅ Gestión de sesiones
+- ✅ Protección de rutas
+- ✅ Context de autenticación (`AuthContext`)
+
+### 2. **Dashboard Principal**
+- ✅ Interfaz de bienvenida
+- ✅ Navegación a editor
+- ✅ Logo y branding corporativo
+
+### 3. **Editor Visual Completo**
+- ✅ **Panel lateral** con elementos disponibles
+- ✅ **Canvas principal** con viewport responsive
+- ✅ **Panel de propiedades** contextual
+- ✅ **Toolbar superior** con acciones
+
+### 4. **Elementos Básicos**
+- ✅ **Heading** - Encabezados editables
+- ✅ **Text** - Párrafos de texto
+- ✅ **Image** - Imágenes con placeholder
+- ✅ **Button** - Botones personalizables
+- ✅ **Container** - Contenedores anidables
+
+### 5. **Sistema de Contenedores Avanzado**
+- ✅ **Drag & Drop Panel → Canvas**
+- ✅ **Drag & Drop Panel → Contenedor**
+- ✅ **Drag & Drop Canvas ↔ Contenedor**
+- ✅ **Anidación infinita** de contenedores
+- ✅ **Estados visuales** limpios
+- ✅ **Feedback visual** durante drag & drop
+
+### 6. **Sistema de Propiedades**
+- ✅ **Contenedores**: padding, altura, colores, bordes
+- ✅ **Texto/Encabezados**: contenido, colores, fuentes
+- ✅ **Botones**: texto, colores de fondo
+- ✅ **Panel dinámico** según elemento seleccionado
+
+### 7. **Sistema de Plantillas**
+- ✅ **CanvasTemplateSystem** integrado
+- ✅ **Biblioteca de plantillas**
+- ✅ **Sistema de favoritos**
+- ✅ **Upload de plantillas personalizadas**
+
+---
+
+## 🏗️ Refactorización Arquitectónica
+
+### 📊 Problema Original
+El proyecto tenía archivos monolíticos difíciles de mantener:
+- **Editor.jsx**: 1,548 líneas (CRÍTICO)
+- **useEditor.js**: 505 líneas
+- **Dashboard.jsx**: 426 líneas
+- **Lógica mezclada** con presentación
+
+### ✅ Solución Implementada
+
+Se implementó una **arquitectura feature-based** profesional que divide el código en módulos pequeños y especializados.
+
+#### **Resultados de la Refactorización:**
+- **Archivo más grande**: 224 líneas ✅
+- **Promedio por archivo**: ~103 líneas ✅
+- **Separación clara** de responsabilidades ✅
+- **Código reutilizable** y modular ✅
+
+---
+
+## 📁 Estructura del Proyecto
+
 ```
 aurelio-builder-app/
 ├── src/
-│   ├── components/
-│   │   ├── Dashboard.jsx           # Dashboard principal con navegación
-│   │   └── Editor/
-│   │       ├── Editor.jsx          # Componente editor simplificado
-│   │       ├── index.js           # Exportaciones del editor
-│   │       └── slider-styles.css  # Estilos para sliders
-│   ├── pages/
-│   │   ├── Login.jsx              # Página de login con Google OAuth
-│   │   ├── DashboardPage.jsx      # Wrapper del dashboard con sesión
-│   │   └── EditorPage.jsx         # Página del editor (anterior)
-│   ├── context/
-│   │   └── AuthContext.jsx        # Contexto de autenticación global
-│   ├── hooks/
-│   │   ├── useEditor.js           # Hook personalizado del editor
-│   │   └── useHistory.js          # Hook para historial de cambios
-│   ├── constants/
-│   │   ├── elementTypes.js        # Tipos de elementos disponibles
-│   │   └── viewportConfigs.js     # Configuraciones de viewport
-│   ├── utils/
-│   │   └── responsiveUtils.js     # Utilidades para responsive design
-│   ├── config/
-│   │   └── firebase.js            # Configuración de Firebase
-│   └── App.jsx                    # Configuración de rutas principal
+│   ├── components/               # Componentes legacy (en transición)
+│   │   ├── Dashboard.jsx         # Dashboard principal
+│   │   ├── Editor/               # Editor original (legacy)
+│   │   │   ├── components/       # Componentes específicos del editor
+│   │   │   ├── elements/         # Elementos renderizables
+│   │   │   ├── hooks/            # Hooks específicos
+│   │   │   └── services/         # Servicios del editor
+│   │   └── shared/               # Componentes compartidos
+│   │       └── AurelioLogo.jsx   # Logo corporativo
+│   │
+│   ├── features/                 # ✨ NUEVA ARQUITECTURA FEATURE-BASED
+│   │   ├── auth/                 # Feature de autenticación (preparada)
+│   │   │   ├── components/
+│   │   │   ├── hooks/
+│   │   │   └── utils/
+│   │   ├── builder/              # 🎯 FEATURE PRINCIPAL DEL EDITOR
+│   │   │   ├── components/       # Componentes UI del editor
+│   │   │   │   ├── Builder.jsx           # Componente principal (165 líneas)
+│   │   │   │   ├── Canvas.jsx            # Canvas principal (143 líneas)
+│   │   │   │   ├── ElementsPanel.jsx     # Panel lateral (35 líneas)
+│   │   │   │   ├── PanelElement.jsx      # Elemento del panel (54 líneas)
+│   │   │   │   ├── PropertiesPanel.jsx   # Panel propiedades (201 líneas)
+│   │   │   │   └── ViewportSelector.jsx  # Selector viewport (32 líneas)
+│   │   │   ├── hooks/            # Lógica de negocio
+│   │   │   │   ├── useBuilderState.js    # Estado principal (81 líneas)
+│   │   │   │   ├── useElementOperations.js # CRUD elementos (224 líneas)
+│   │   │   │   └── useElementUtils.js    # Utilidades (107 líneas)
+│   │   │   ├── utils/            # Utilidades específicas
+│   │   │   │   └── availableElements.jsx # Config elementos (78 líneas)
+│   │   │   ├── services/         # Servicios (preparado)
+│   │   │   ├── store/            # Estado global (preparado)
+│   │   │   └── index.js          # Exports centralizados (14 líneas)
+│   │   └── dashboard/            # Feature dashboard (preparada)
+│   │       ├── components/
+│   │       ├── hooks/
+│   │       └── utils/
+│   │
+│   ├── shared/                   # Recursos compartidos globalmente
+│   │   ├── components/           # Componentes reutilizables
+│   │   ├── hooks/                # Hooks globales
+│   │   └── utils/                # Utilidades globales
+│   │       └── responsiveUtils.js # Utilidades responsive
+│   │
+│   ├── constants/                # Constantes globales
+│   │   ├── elementTypes.js       # Tipos de elementos
+│   │   └── viewportConfigs.js    # Configuraciones viewport
+│   │
+│   ├── context/                  # Contexts React
+│   │   ├── AuthContext.jsx       # Contexto autenticación
+│   │   └── AurelioBuilderContext.jsx # Contexto editor
+│   │
+│   ├── hooks/                    # Hooks globales legacy
+│   │   ├── useEditor.js          # Hook editor principal (legacy)
+│   │   └── useHistory.js         # Hook historial
+│   │
+│   ├── pages/                    # Páginas principales
+│   │   ├── DashboardPage.jsx     # Página dashboard
+│   │   ├── EditorPage.jsx        # Página editor (actualizada)
+│   │   └── Login.jsx             # Página login
+│   │
+│   ├── config/                   # Configuraciones
+│   │   └── firebase.js           # Config Firebase
+│   │
+│   └── main.jsx                  # Punto de entrada
+│
+├── public/                       # Archivos estáticos
+├── docs/                         # Documentación adicional
+└── package.json                  # Dependencias y scripts
 ```
 
 ---
 
-## ✅ **Componentes Principales Implementados**
-
-### **1. Sistema de Autenticación**
-- **AuthContext**: Manejo global de estado de usuario con Firebase
-- **Login.jsx**: Interfaz de login con Google OAuth y email/password
-- **Rutas Protegidas**: Sistema de verificación automática de sesión
-
-### **2. Dashboard Principal**
-- **Dashboard.jsx**: Interfaz principal con navegación lateral
-- **Navegación Lateral**: 14 herramientas organizadas (Analytics, Sites, Forms, etc.)
-- **Overview de Proyectos**: Panel de gestión de proyectos existentes
-- **Sistema de Plantillas**: 9 categorías con 13+ plantillas disponibles
-
-### **3. Editor Visual**
-- **Editor.jsx**: Editor simplificado funcional
-- **Panel de Elementos**: 5 elementos básicos (Container, Heading, Text, Image, Button)
-- **Canvas Responsivo**: Vista previa con modos Desktop/Tablet/Mobile
-- **Panel de Propiedades**: Configuración de elementos seleccionados
-
----
-
-## 🔄 **Flujo de Usuario Implementado**
-
-1. **Login** → Usuario ingresa credenciales → **Dashboard**
-2. **Dashboard** → Usuario selecciona "Nueva Página" o "Lienzo en Blanco" → **Editor**
-3. **Editor** → Usuario hace clic en "Salir" → **Dashboard**
-4. **Dashboard** → Usuario hace clic en "Cerrar Sesión" → **Login**
-
----
-
-## 🎨 **Características de UX/UI**
-
-### **Diseño Visual**
-- **Tema Oscuro Consistente**: Paleta de grises con acentos rosa/morado
-- **Gradientes**: Elementos visuales con `from-[#ff1b6d] to-[#8b5cf6]`
-- **Iconografía**: React Icons (Feather Icons) en toda la aplicación
-- **Responsive**: Adaptable a diferentes tamaños de pantalla
-
-### **Interacciones**
-- **Transiciones Suaves**: `transition-colors`, `hover:`, `group-hover:`
-- **Estados Visuales**: Loading, hover, active, disabled
-- **Feedback Visual**: Confirmaciones, errores, estados de carga
-
----
-
-## 🛠️ **Tecnologías y Dependencias**
-
-### **Core Stack**
-- **React 18**: Framework principal
-- **Vite**: Build tool y dev server
-- **React Router DOM**: Navegación y rutas
-- **Tailwind CSS**: Framework de estilos
-
-### **Autenticación**
-- **Firebase Auth**: Sistema de autenticación
-- **Google OAuth**: Login con Google
-
-### **Herramientas de Estado**
-- **React Context**: Manejo de estado global
-- **Custom Hooks**: useEditor, useHistory
-
-### **UI Components**
-- **React Icons**: Iconografía
-- **React Hook Form**: Formularios
-- **Yup**: Validaciones
-
----
-
-## 🔧 **Problemas Solucionados**
-
-### **Errores de Estado**
-- ✅ **Bucle Infinito**: Corregido en AuthContext eliminando setUser duplicado
-- ✅ **Maximum Update Depth**: Solucionado optimizando useCallback dependencies
-- ✅ **Navigation Throttling**: Resuelto con el fix del bucle infinito
-
-### **Importaciones y Exports**
-- ✅ **Editor Import**: Corregido export default en components/Editor/
-- ✅ **Route Configuration**: Rutas del dashboard configuradas correctamente
-
-### **UX Improvements**
-- ✅ **Redundancia Visual**: Eliminado título duplicado en sidebar
-- ✅ **Padding Google Button**: Mejorado espaciado del botón de Google
-
----
-
-## 📋 **Elementos del Editor Disponibles**
-
-### **Elementos Básicos Implementados**
-1. **Container**: Contenedor flexible con propiedades de layout
-   - Props: layout, gap, padding, backgroundColor, borderRadius, border, minHeight, alignment, flexDirection, justifyContent, alignItems
-   
-2. **Heading**: Encabezados H1-H6 con estilos personalizables
-   - Props: text, level, alignment, color, fontSize
-   
-3. **Text**: Bloques de texto con formato
-   - Props: text, alignment, color, fontSize
-   
-4. **Image**: Imágenes con responsive y alt text
-   - Props: src, alt, width, height
-   
-5. **Button**: Botones con enlaces y estilos personalizados
-   - Props: text, link, backgroundColor, textColor, padding, borderRadius
-
-### **Propiedades Base Configurables**
-- **Layout**: Flexbox, grid, positioning
-- **Styling**: Colors, fonts, borders, shadows
-- **Responsive**: Diferentes configuraciones por viewport
-- **Interactive**: Links, hover states, animations
-
----
-
-## 🎯 **Próximos Pasos - Componentes y Propiedades**
-
-### **Prioridades para la Expansión del Editor**
-
-1. **Expandir Panel de Propiedades**:
-   - Sistema completo de estilos (Typography, Colors, Spacing)
-   - Configuraciones responsive por elemento
-   - Estados interactivos (hover, active, focus)
-
-2. **Nuevos Elementos Avanzados**:
-   - Video Player
-   - Forms (Input, Textarea, Select)
-   - Lists y Tables
-   - Charts y Graphs
-   - Social Media Embeds
-
-3. **Sistema de Componentes Reutilizables**:
-   - Biblioteca de componentes personalizados
-   - Import/Export de componentes
-   - Versioning de componentes
-
-4. **Funcionalidades Avanzadas**:
-   - Drag & Drop real entre elementos
-   - Copy/Paste de elementos
-   - Undo/Redo system
-   - Auto-save functionality
-
----
-
-## 📊 **Métricas del Proyecto**
-
-- **Archivos Creados**: 15+ archivos principales
-- **Componentes**: 10+ componentes React
-- **Rutas**: 4 rutas principales configuradas
-- **Elementos de Editor**: 5 elementos base funcionales
-- **Plantillas**: 13+ plantillas organizadas en 9 categorías
-- **Líneas de Código**: ~2000+ líneas
-
----
-
-## 🔥 **Funcionalidades Destacadas**
-
-### **Dashboard Completo**
-- Navegación intuitiva con 14 herramientas
-- Sistema de plantillas por categorías
-- Overview de proyectos con vista previa
-- Integración fluida con el editor
-
-### **Editor Visual**
-- Canvas responsivo con vista previa en tiempo real
-- Panel de elementos drag-and-drop ready
-- Sistema de propiedades extensible
-- Integración con sistema de plantillas
-
-### **Sistema de Autenticación Robusto**
-- Firebase Auth con Google OAuth
-- Manejo de estado global optimizado
-- Rutas protegidas automáticas
-- Experiencia de usuario fluida
-
----
-
-## 🚀 **Estado: Listo para Expansión**
-
-La base sólida está completa y funcional. El proyecto está preparado para:
-- Agregar elementos más complejos al editor
-- Implementar sistema avanzado de propiedades
-- Expandir funcionalidades de cada herramienta del dashboard
-- Integrar sistemas de persistencia y colaboración
-
----
-
-## 📝 **Notas de Desarrollo**
-
-### **Decisiones Arquitectónicas Importantes**
-- **Separación de Responsabilidades**: Dashboard y Editor como componentes independientes
-- **Estado Global Centralizado**: AuthContext para manejo de usuario
-- **Hooks Personalizados**: useEditor y useHistory para lógica del editor
-- **Rutas Protegidas**: Verificación automática de autenticación
-
-### **Patrones de Código Seguidos**
-- **Componentes Funcionales**: Uso de hooks en lugar de clases
-- **Props Drilling Minimizado**: Context API para estado global
-- **Naming Conventions**: Nombres descriptivos y consistentes
-- **File Organization**: Estructura modular y escalable
-
----
-
-## 🎉 **REFACTORIZACIÓN PROFESIONAL COMPLETADA**
-
-### ✅ **Arquitectura Profesional Implementada (v1.1.0)**
-
-Hemos completado una refactorización completa del sistema de componentes del editor, implementando una arquitectura profesional, escalable y mantenible.
-
-#### **🏗️ Nuevos Sistemas Implementados:**
-
-**1. Sistema de Propiedades Compartidas** - `BaseProperties.js`
-- ✅ 7 categorías de propiedades (spacing, visual, typography, layout, flexbox, transform, animation)
-- ✅ Sistema DRY - eliminadas duplicaciones de padding, colors, borderRadius, etc.
-- ✅ +50 propiedades base reutilizables con validación automática
-- ✅ Tipado y configuración declarativa por propiedad
-
-**2. Registry Pattern Escalable** - `ElementRegistry.js`
-- ✅ Registro dinámico y centralizado de elementos
-- ✅ Validación automática de configuraciones
-- ✅ Sistema de búsqueda y filtrado por tags/nombre/categoría
-- ✅ Gestión de metadatos (versión, fecha registro, estadísticas)
-- ✅ Funciones de desarrollo (unregister, clear, stats)
-
-**3. Sistema de Renderizado Genérico** - `ElementRenderer.jsx`
-- ✅ Un solo componente maneja todos los tipos de elementos
-- ✅ Renderizado recursivo para elementos anidados (containers)
-- ✅ Manejo robusto de errores con fallbacks visuales
-- ✅ Hook personalizado `useElementStyles` para estilos computados
-- ✅ Componentes especializados: `ElementList`, `CanvasRenderer`
-
-**4. Elementos Independientes y Modulares:**
-
-**Container Element** - `Container.jsx`
-- ✅ Flexbox avanzado con propiedades específicas de layout
-- ✅ Indicadores visuales de estado vacío
-- ✅ Resize handles cuando está seleccionado
-- ✅ Configuración declarativa de justifyContent, alignItems, flexWrap
-
-**Text Element** - `Text.jsx`
-- ✅ Edición inline con doble clic
-- ✅ Propiedades tipográficas avanzadas (letterSpacing, textTransform, wordBreak)
-- ✅ Estados de edición con indicadores visuales
-- ✅ Control de teclas (Enter, Escape) para terminar edición
-
-**Heading Element** - `Heading.jsx`
-- ✅ Niveles H1-H6 dinámicos con tamaños automáticos
-- ✅ Configuración específica de fontWeight por nivel
-- ✅ Edición inline con indicador de nivel
-- ✅ Elemento HTML semánticamente correcto (h1, h2, etc.)
-
-**Image Element** - `Image.jsx`
-- ✅ Sistema de upload de imágenes con preview
-- ✅ Propiedades responsive (objectFit, objectPosition)
-- ✅ Estados de loading y error con placeholders
-- ✅ Lazy loading y optimización de performance
-- ✅ Resize handles completos (8 direcciones)
-- ✅ Modal de upload con drag & drop area
-
-**Button Element** - `Button.jsx`
-- ✅ Estados hover con colores personalizables
-- ✅ Soporte para enlaces externos con indicadores visuales
-- ✅ Tipos de botón (button, submit, reset)
-- ✅ Estados disabled con opacidad automática
-- ✅ Información de enlace cuando está seleccionado
-- ✅ Edición inline del texto del botón
-
-**5. Sistema de Bootstrap Automático** - `ElementsBootstrap.js`
-- ✅ Registro automático al inicializar la aplicación
-- ✅ Validación completa de integridad del registry
-- ✅ Funciones de desarrollo (reload, dynamic add, unregister)
-- ✅ Estadísticas detalladas y logs informativos
-- ✅ Sistema de inicialización con control de estado
-
----
-
-## 📁 **Nueva Estructura Profesional**
-
+## 🧩 Componentes y Hooks
+
+### **🎨 Componentes de la Feature Builder**
+
+#### **1. Builder.jsx** - *Componente Principal*
+```javascript
+// Funcionalidades:
+- Toolbar superior con acciones
+- Gestión de viewport modes
+- Coordinación de panels
+- Integración con hooks de estado
 ```
-src/components/Editor/
-├── shared/
-│   └── BaseProperties.js           # 🎨 Sistema de propiedades base DRY
-├── core/
-│   ├── ElementRegistry.js          # 📝 Registro dinámico escalable
-│   ├── ElementRenderer.jsx         # 🎭 Renderizado genérico universal
-│   └── ElementsBootstrap.js        # 🚀 Auto-inicialización inteligente
-├── elements/
-│   ├── Container/
-│   │   └── Container.jsx           # 📦 Elemento contenedor avanzado
-│   ├── Text/
-│   │   └── Text.jsx               # ✏️ Texto editable con tipografía
-│   ├── Heading/
-│   │   └── Heading.jsx            # 📰 Encabezados H1-H6 dinámicos
-│   ├── Image/
-│   │   └── Image.jsx              # 🖼️ Imágenes responsive con upload
-│   └── Button/
-│       └── Button.jsx             # 🔘 Botones con estados y enlaces
-└── Editor.jsx                     # 📝 (pendiente refactorización)
+
+#### **2. ElementsPanel.jsx** - *Panel Lateral*
+```javascript
+// Funcionalidades:
+- Lista de elementos disponibles
+- Drag & drop hacia canvas
+- UI responsive y profesional
+```
+
+#### **3. Canvas.jsx** - *Área de Trabajo*
+```javascript
+// Funcionalidades:
+- Renderizado de elementos
+- Drop zone principal
+- Viewport responsive
+- Sistema de plantillas integrado
+```
+
+#### **4. PropertiesPanel.jsx** - *Panel de Propiedades*
+```javascript
+// Funcionalidades:
+- Propiedades dinámicas por elemento
+- Formularios especializados
+- Preview en tiempo real
+```
+
+### **🎣 Hooks Personalizados**
+
+#### **1. useBuilderState.js** - *Estado Principal*
+```javascript
+// Responsabilidades:
+- Estado global del editor
+- Handlers de acciones
+- Gestión de viewport
+- Coordinación de operaciones
+```
+
+#### **2. useElementOperations.js** - *Operaciones CRUD*
+```javascript
+// Responsabilidades:
+- Crear elementos
+- Actualizar elementos
+- Eliminar elementos
+- Mover entre contenedores
+- Reordenar elementos
+```
+
+#### **3. useElementUtils.js** - *Utilidades de Jerarquía*
+```javascript
+// Responsabilidades:
+- Búsqueda recursiva
+- Actualización anidada
+- Generación de IDs
+- Manipulación de árbol
 ```
 
 ---
 
-## 🔥 **Características Profesionales Implementadas**
+## 📦 Sistema de Contenedores
 
-### **🎯 Escalabilidad Máxima:**
-- ✅ **Agregar nuevos elementos**: Solo 3 pasos (crear componente, config, añadir a bootstrap)
-- ✅ **Propiedades automáticas**: Todos los elementos heredan automáticamente las propiedades base
-- ✅ **Categorización inteligente**: Sistema de categorías y tags para organización
-- ✅ **Validación automática**: Configuraciones validadas automáticamente al registrar
+### **🎯 Funcionalidades Core Implementadas**
 
-### **🛠️ Mantenibilidad Superior:**
-- ✅ **Archivos enfocados**: Cada archivo < 350 líneas con responsabilidad única
-- ✅ **Separación clara**: Lógica, vista y configuración completamente separadas
-- ✅ **Configuración declarativa**: Sin código hardcodeado, todo configurable
-- ✅ **Sistema de debugging**: Logs detallados y funciones de diagnóstico integradas
+#### **1. Drag & Drop Completo**
+- ✅ **Panel → Canvas**: Arrastrar elementos nuevos
+- ✅ **Panel → Contenedor**: Arrastrar dentro de contenedores
+- ✅ **Canvas ↔ Contenedor**: Mover elementos existentes
+- ✅ **Contenedor ↔ Contenedor**: Mover entre contenedores
 
-### **🎨 Funcionalidad Avanzada de UI/UX:**
-- ✅ **Edición inline**: Texto, encabezados y botones editables con doble clic
-- ✅ **Indicadores visuales**: Selección, estado, tipo de elemento claramente identificados
-- ✅ **Resize handles**: Controles de redimensionamiento en containers e imágenes
-- ✅ **Upload de media**: Sistema completo de subida de imágenes con preview
-- ✅ **Estados interactivos**: Hover, focus, disabled con transiciones suaves
-- ✅ **Responsive design**: Propiedades específicas por viewport (preparado)
+#### **2. Anidación de Contenedores**
+- ✅ **Contenedores recursivos**: Soporte para jerarquías complejas
+- ✅ **Renderizado correcto**: Elementos hijos mostrados
+- ✅ **Estado sincronizado**: Jerarquía mantenida
 
-### **🔍 Herramientas de Desarrollo:**
-- ✅ **Validación completa**: Registry validado automáticamente en inicialización
-- ✅ **Estadísticas detalladas**: Métricas completas de elementos y categorías
-- ✅ **Hot reloading**: Sistema de recarga para desarrollo sin reiniciar
-- ✅ **Dynamic loading**: Agregar elementos dinámicamente en runtime
-- ✅ **Error boundaries**: Manejo robusto de errores con fallbacks visuales
+#### **3. Interfaz Limpia**
+- ✅ **Experiencia simplificada**: Sin indicadores innecesarios
+- ✅ **Estados visuales**: Interfaz clara y profesional
+- ✅ **Feedback drag & drop**: Overlays y animaciones
 
----
+#### **4. Experiencia de Usuario**
+- ✅ **Diseño profesional**: Sin emojis, iconos Feather
+- ✅ **Transiciones suaves**: Animaciones fluidas
+- ✅ **Feedback inmediato**: Estado visual durante operaciones
+- ✅ **Logs limpios**: Debugging claro y profesional
 
-## 📊 **Métricas de Refactorización**
+### **🔧 Implementación Técnica**
 
-### **Código Profesional:**
-- **Archivos especializados**: 9 archivos modulares y enfocados
-- **Líneas organizadas**: ~2,500+ líneas perfectamente estructuradas
-- **Elementos funcionales**: 5 elementos completamente implementados
-- **Propiedades reutilizables**: 50+ propiedades base compartidas
-- **Categorías organizadas**: 7 categorías (layout, content, media, interactive, etc.)
-- **Cobertura de funcionalidad**: 95% de casos de uso cubiertos
+#### **Gestión de Estado**
+```javascript
+// Estructura de datos:
+{
+  id: "container-123456789_abc123def",
+  type: "container",
+  props: {
+    children: [
+      // Elementos hijos (pueden incluir más contenedores)
+    ],
+    padding: "20px",
+    minHeight: "150px",
+    backgroundColor: "transparent",
+    border: "2px dashed #d1d5db",
+    borderRadius: "8px"
+  }
+}
+```
 
-### **Arquitectura:**
-- **Patrones implementados**: Registry, Factory, Observer, Composite
-- **Principios SOLID**: Cumple todos los principios de diseño
-- **DRY Compliance**: 0% duplicación de propiedades
-- **Separation of Concerns**: 100% separación de responsabilidades
-- **Open/Closed Principle**: Abierto para extensión, cerrado para modificación
-
----
-
-## 🚀 **Ventajas de la Nueva Arquitectura**
-
-### **Para Desarrolladores:**
-1. **🔧 Desarrollo Rápido**: Crear nuevos elementos en minutos, no horas
-2. **🧪 Testing Sencillo**: Cada componente testeable independientemente
-3. **🔍 Debugging Fácil**: Logs detallados y herramientas de diagnóstico
-4. **📝 Documentación Automática**: Configuración autodocumentada
-
-### **Para el Proyecto:**
-1. **📈 Escalabilidad Ilimitada**: Arquitectura preparada para cientos de elementos
-2. **🛠️ Mantenimiento Mínimo**: Cambios localizados, sin efectos colaterales
-3. **🎨 Consistencia Visual**: Propiedades y comportamientos uniformes
-4. **⚡ Performance Optimizada**: Renderizado eficiente y lazy loading
-
-### **Para Usuarios Finales:**
-1. **🎯 Experiencia Intuitiva**: Interacciones consistentes y predecibles
-2. **⚡ Respuesta Rápida**: Feedback visual inmediato en todas las acciones
-3. **🎨 Control Avanzado**: Propiedades detalladas sin complejidad
-4. **💡 Funcionalidad Rica**: Upload, edición inline, estados hover, etc.
+#### **Funciones Críticas**
+- `updateNestedElement()` - Actualización recursiva
+- `findAndRemoveElement()` - Búsqueda y extracción
+- `addToContainer()` - Agregar a contenedor específico
+- `moveToContainer()` - Mover entre contenedores
 
 ---
 
-## 🎯 **Próximas Fases de Desarrollo**
+## 👨‍💻 Guía de Desarrollo
 
-### **Fase Inmediata (v1.2.0):**
-- 🔄 Refactorizar Editor.jsx principal en componentes modulares
-- 🎛️ Implementar PropertyPanels específicos por tipo de elemento
-- 🔧 Refactorizar ElementsPanel para usar el nuevo registry
-- 🎨 Sistema de temas y estilos globales
+### **🚀 Iniciar el Proyecto**
 
-### **Fase de Expansión (v1.3.0):**
-- 📱 Elementos avanzados: Video, Form, List, Table, Chart
-- 🎭 Sistema de animaciones y transiciones
-- 📐 Grid system y layout avanzado
-- 🔄 Sistema de undo/redo completo
+```bash
+# Clonar el repositorio
+git clone [repository-url]
+cd aurelio-builder-app
 
-### **Fase de Optimización (v1.4.0):**
-- 🚀 Performance optimizations
-- 📱 Responsive design completo
-- 🔄 Real-time collaboration
-- 💾 Auto-save y persistencia
+# Instalar dependencias
+npm install
+
+# Iniciar en desarrollo
+npm run dev
+
+# Compilar para producción
+npm run build
+```
+
+### **📝 Convenciones de Código**
+
+#### **Estructura de Componentes**
+```javascript
+// 1. Imports
+import React from 'react';
+import { hooks } from '../hooks/useExample';
+
+// 2. Tipos y constantes
+const COMPONENT_CONSTANTS = {};
+
+// 3. Componente principal
+function ComponentName({ prop1, prop2 }) {
+  // 4. Hooks
+  const { state, actions } = hooks();
+  
+  // 5. Handlers
+  const handleAction = () => {};
+  
+  // 6. Render
+  return <div>Content</div>;
+}
+
+// 7. Export
+export default ComponentName;
+```
+
+#### **Naming Conventions**
+- **Componentes**: `PascalCase` (ej: `ElementsPanel`)
+- **Hooks**: `camelCase` con prefijo `use` (ej: `useBuilderState`)
+- **Funciones**: `camelCase` (ej: `handleDragStart`)
+- **Constantes**: `UPPER_SNAKE_CASE` (ej: `ELEMENT_TYPES`)
+- **Archivos**: `PascalCase` para componentes, `camelCase` para hooks
+
+#### **Estructura de Archivos**
+- **Componentes** max **200 líneas**
+- **Hooks** max **300 líneas**
+- **Una responsabilidad** por archivo
+- **Imports organizados** (externos, internos, relativos)
+
+### **🔧 Agregar Nueva Feature**
+
+```bash
+# 1. Crear estructura
+mkdir -p src/features/nueva-feature/{components,hooks,utils,services}
+
+# 2. Crear index.js
+touch src/features/nueva-feature/index.js
+
+# 3. Agregar exports
+echo "export { default as ComponentName } from './components/ComponentName';" > src/features/nueva-feature/index.js
+```
+
+### **🧪 Testing (Preparado para implementar)**
+```bash
+# Estructura recomendada:
+src/features/builder/__tests__/
+├── components/
+│   ├── Builder.test.jsx
+│   └── ElementsPanel.test.jsx
+├── hooks/
+│   └── useBuilderState.test.js
+└── utils/
+    └── elementUtils.test.js
+```
 
 ---
 
-**¡ARQUITECTURA PROFESIONAL COMPLETADA - LISTA PARA PRODUCCIÓN!** 🎉🚀
+## 🔮 Próximos Pasos
+
+### **🎯 Prioridad Alta**
+
+#### **1. Completar Canvas con CanvasElement**
+- [ ] Refactorizar `CanvasElement` (600+ líneas → componentes < 200)
+- [ ] Crear `CanvasElementRenderer.jsx`
+- [ ] Implementar `DragDropManager.jsx`
+- [ ] Agregar `ElementMenu.jsx`
+
+#### **2. Sistema de Testing**
+- [ ] Configurar Jest + React Testing Library
+- [ ] Tests unitarios para hooks
+- [ ] Tests de integración para componentes
+- [ ] Tests E2E con Cypress
+
+#### **3. TypeScript Integration**
+- [ ] Migrar a TypeScript gradualmente
+- [ ] Definir interfaces para elementos
+- [ ] Tipado estricto en hooks
+- [ ] Props validation
+
+### **🎯 Prioridad Media**
+
+#### **4. Features Adicionales**
+- [ ] **Auth Feature**: Componentes de autenticación
+- [ ] **Dashboard Feature**: Panel administrativo
+- [ ] **Templates Feature**: Sistema de plantillas avanzado
+- [ ] **Export Feature**: Exportar código HTML/CSS
+
+#### **5. Optimizaciones**
+- [ ] Lazy loading de features
+- [ ] Code splitting por rutas
+- [ ] Memoización de componentes pesados
+- [ ] Optimización de bundle size
+
+#### **6. UI/UX Improvements**
+- [ ] Dark/Light theme toggle
+- [ ] Keyboard shortcuts
+- [ ] Undo/Redo system
+- [ ] Collaborative editing
+
+### **🎯 Prioridad Baja**
+
+#### **7. Escalabilidad**
+- [ ] State management con Zustand/Redux
+- [ ] Sistema de plugins
+- [ ] API REST para persistencia
+- [ ] WebSocket para colaboración real-time
+
+#### **8. DevOps**
+- [ ] CI/CD pipeline
+- [ ] Docker containerization
+- [ ] Deployment automation
+- [ ] Monitoring y analytics
 
 ---
 
-**Fecha de Última Actualización**: 2025-10-03
-**Versión**: 1.1.0 - Refactorización Profesional Completada
+## 📈 Métricas del Proyecto
+
+### **📊 Estadísticas de Código**
+
+#### **Antes de la Refactorización:**
+- **Líneas totales**: ~10,223
+- **Archivos problemáticos**: 4 archivos > 400 líneas
+- **Archivo más grande**: 1,548 líneas (Editor.jsx)
+- **Mantenibilidad**: ❌ Difícil
+
+#### **Después de la Refactorización:**
+- **Feature builder**: 1,134 líneas
+- **11 archivos modulares**: Promedio 103 líneas
+- **Archivo más grande**: 224 líneas (useElementOperations.js)
+- **Mantenibilidad**: ✅ Excelente
+
+### **🏗️ Arquitectura**
+- **Features implementadas**: 1 (builder) + 2 preparadas (auth, dashboard)
+- **Componentes reutilizables**: 6 en builder feature
+- **Hooks personalizados**: 3 especializados
+- **Separación de responsabilidades**: ✅ Completa
+
+### **🚀 Funcionalidades**
+- **Elementos básicos**: 5 tipos (container, heading, text, image, button)
+- **Drag & drop**: ✅ Completo (4 flujos diferentes)
+- **Anidación**: ✅ Infinita
+- **Responsive**: ✅ 3 viewports
+- **Propiedades**: ✅ Dinámicas por tipo
+
+---
+
+## 🎉 Conclusión
+
+**Aurelio Builder** ha evolucionado de un proyecto monolítico a una **aplicación moderna con arquitectura profesional**. La refactorización feature-based establece una base sólida para el crecimiento sostenible del proyecto.
+
+### **🏆 Logros Principales:**
+1. **Arquitectura escalable** implementada
+2. **Código mantenible** con archivos pequeños
+3. **Funcionalidad completa** de contenedores anidados
+4. **Base sólida** para futuras features
+5. **Documentación completa** del progreso
+
+### **🎯 Impacto:**
+- **Desarrolladores**: Código más fácil de entender y modificar
+- **Mantenimiento**: Actualizaciones y debugging más eficientes
+- **Escalabilidad**: Fácil agregar nuevas funcionalidades
+- **Colaboración**: Múltiples devs pueden trabajar simultáneamente
+- **Testing**: Componentes aislados más fáciles de testear
+
+**El proyecto está preparado para convertirse en una herramienta de website building de nivel empresarial.** 🚀
+
+---
+
+## 📞 Información de Contacto
+
+**Proyecto**: Aurelio Builder  
+**Versión**: 1.0.0  
+**Última actualización**: Octubre 2024  
+**Estado**: En desarrollo activo  
+
+---
+
+*Documentación actualizada automáticamente con cada refactorización major.*
