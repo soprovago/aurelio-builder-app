@@ -540,22 +540,34 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                 />
               </div>
             ) : (
-              <div className="space-y-2">
-                {elements.map((element, index) => (
-                  <CanvasElement
-                    key={element.id}
-                    element={element}
-                    index={index}
-                    isSelected={selectedElement?.id === element.id}
-                    onSelect={onSelectElement}
-                    onDelete={onDeleteElement}
-                    onDuplicate={onDuplicateElement}
-                    onReorder={onReorderElements}
-                    selectedElement={selectedElement}
-                    viewportMode={viewportMode}
+              <>
+                {/* Elementos del canvas */}
+                <div className="space-y-2 mb-8">
+                  {elements.map((element, index) => (
+                    <CanvasElement
+                      key={element.id}
+                      element={element}
+                      index={index}
+                      isSelected={selectedElement?.id === element.id}
+                      onSelect={onSelectElement}
+                      onDelete={onDeleteElement}
+                      onDuplicate={onDuplicateElement}
+                      onReorder={onReorderElements}
+                      selectedElement={selectedElement}
+                      viewportMode={viewportMode}
+                    />
+                  ))}
+                </div>
+                
+                {/* Sistema de plantillas siempre visible */}
+                <div className="border-t border-gray-200 pt-6">
+                  <CanvasTemplateSystem
+                    onAddContainerStructure={handleAddContainerStructure}
+                    onLoadTemplate={handleLoadTemplate}
+                    onUploadTemplate={handleUploadTemplate}
                   />
-                ))}
-              </div>
+                </div>
+              </>
             )}
           </div>
         </div>
