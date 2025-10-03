@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEditor } from '../../hooks/useEditor';
 import { ELEMENT_TYPES } from '../../constants/elementTypes';
@@ -6,8 +6,6 @@ import { VIEWPORT_MODES, VIEWPORT_CONFIGS } from '../../constants/viewportConfig
 import { getResponsiveProperty } from '../../utils/responsiveUtils';
 import AurelioLogo from '../shared/AurelioLogo';
 import CanvasTemplateSystem from './components/CanvasTemplateSystem';
-import { useDragDrop, useDropZone } from './hooks/useDragDrop';
-import { DraggableCanvasElement, DroppableContainer, DragGhost } from './components/DragDropIndicators';
 import './slider-styles.css';
 
 // Importar iconos necesarios
@@ -26,6 +24,7 @@ import {
   FiEdit3,
   FiTrash2,
   FiCopy,
+  FiMove,
   FiMoreVertical,
   FiDroplet,
   FiSliders,
@@ -112,7 +111,7 @@ const availableElements = [
 ];
 
 // Componente para elementos del panel
-function PanelElement({ element, onClick, onDragStart }) {
+function PanelElement({ element, onClick }) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleClick = (e) => {
@@ -124,8 +123,10 @@ function PanelElement({ element, onClick, onDragStart }) {
   };
 
   const handleDragStart = (e) => {
+    console.log('🚀 PanelElement drag started:', element.name);
     setIsDragging(true);
-    onDragStart(e, element);
+    e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'panel-element', element: element }));
+    e.dataTransfer.effectAllowed = 'copy';
   };
 
   const handleDragEnd = () => {
@@ -158,7 +159,7 @@ function PanelElement({ element, onClick, onDragStart }) {
 }
 
 // Panel de elementos disponibles
-function ElementsPanel({ onAddElement, onElementDragStart }) {
+function ElementsPanel({ onAddElement }) {
   const handleElementClick = (element, e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -177,7 +178,6 @@ function ElementsPanel({ onAddElement, onElementDragStart }) {
             <PanelElement 
               element={element} 
               onClick={(e) => handleElementClick(element, e)}
-              onDragStart={onElementDragStart}
             />
           </div>
         ))}
@@ -186,134 +186,45 @@ function ElementsPanel({ onAddElement, onElementDragStart }) {
   );
 }
 
-// Componente Canvas con drag & drop
-function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onLoadTemplate, dragDropContext }) {
-  const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
-  
-  // Drop zone para canvas principal
-  const canvasDropZone = useDropZone(
-    { type: 'canvas', index: elements.length },
-    dragDropContext
-  );
-  
-  // Funciones para el sistema de plantillas
-  const handleAddContainerStructure = (structure) => {
-    console.log('📦 Adding container structure:', structure);
-    
-    const elementTemplate = {
-      id: structure.id || `element-${Date.now()}`,
-      type: ELEMENT_TYPES.CONTAINER,
-      name: 'Container Structure',
-      defaultProps: structure.props
-    };
-    
-    onAddElement(elementTemplate);
-  };
-  
-  const handleLoadTemplate = (template) => {
-    console.log('📚 Loading template:', template.name);
-    if (template.elements && template.elements.length > 0) {
-      template.elements.forEach((element, index) => {
-        setTimeout(() => {
-          onAddElement({ ...element, id: `template-element-${Date.now()}-${index}` });
-        }, index * 100);
-      });
-    }
-    onLoadTemplate && onLoadTemplate(template);
-  };
-  
-  const handleUploadTemplate = (template) => {
-    console.log('📁 Uploading template:', template);
-    if (template.elements && template.elements.length > 0) {
-      template.elements.forEach((element, index) => {
-        setTimeout(() => {
-          onAddElement({ ...element, id: `uploaded-element-${Date.now()}-${index}` });
-        }, index * 100);
-      });
-    }
-  };
+// Componente CanvasElement (elemento individual en canvas)
+function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onReorder, selectedElement, viewportMode }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef(null);
 
-  // Componente interno para manejar contenedores con drag & drop
-  function ContainerElement({ element, selectedElement, onSelectElement, dragDropContext }) {
-    const containerDropZone = useDropZone(
-      { type: 'container', containerId: element.id },
-      dragDropContext
-    );
-    
-    const isEmpty = !element.props.children || element.props.children.length === 0;
-    
-    return (
-      <DroppableContainer
-        container={element}
-        isEmpty={isEmpty}
-        dropZoneProps={containerDropZone.dropZoneProps}
-        isDropTarget={containerDropZone.isDropTarget}
-        dropPosition={containerDropZone.dropPosition}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: element.props.flexDirection || 'column',
-            gap: element.props.gap || '16px',
-            padding: element.props.padding || '20px',
-            backgroundColor: element.props.backgroundColor === 'transparent' ? 'transparent' : (element.props.backgroundColor || 'transparent'),
-            borderRadius: element.props.borderRadius || '0px',
-            border: element.props.border || 'none',
-            minHeight: element.props.minHeight || '100px',
-            alignItems: element.props.alignItems || 'stretch',
-            justifyContent: element.props.justifyContent || 'flex-start',
-            flexWrap: element.props.flexWrap || 'nowrap'
-          }}
-          className="transition-all"
-        >
-          {element.props.children && element.props.children.length > 0 ? (
-            element.props.children.map((child) => (
-              <CanvasElement
-                key={child.id}
-                element={child}
-                selectedElement={selectedElement}
-                onSelectElement={onSelectElement}
-                dragDropContext={dragDropContext}
-              />
-            ))
-          ) : null}
-        </div>
-      </DroppableContainer>
-    );
-  }
-  
-  // Componente interno para elementos individuales con drop zones
-  function CanvasElement({ element, selectedElement, onSelectElement, dragDropContext, index = 0 }) {
-    const elementDropZone = useDropZone(
-      { type: 'canvas', index },
-      dragDropContext
-    );
-    
-    return (
-      <DraggableCanvasElement
-        element={element}
-        isSelected={selectedElement?.id === element.id}
-        onSelect={onSelectElement}
-        onDragStart={dragDropContext.handleExistingElementDragStart}
-        dropZoneProps={elementDropZone.dropZoneProps}
-        isDropTarget={elementDropZone.isDropTarget}
-        dropPosition={elementDropZone.dropPosition}
-      >
-        {renderElement(element)}
-      </DraggableCanvasElement>
-    );
-  }
-  
-  const renderElement = (element) => {
+  const renderElement = () => {
     switch (element.type) {
       case ELEMENT_TYPES.CONTAINER:
         return (
-          <ContainerElement
-            element={element}
-            selectedElement={selectedElement}
-            onSelectElement={onSelectElement}
-            dragDropContext={dragDropContext}
-          />
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: element.props.flexDirection || 'column',
+              gap: element.props.gap || '16px',
+              padding: element.props.padding || '20px',
+              backgroundColor: element.props.backgroundColor === 'transparent' ? 'transparent' : (element.props.backgroundColor || 'transparent'),
+              borderRadius: element.props.borderRadius || '0px',
+              border: element.props.border || 'none',
+              minHeight: element.props.minHeight || '100px',
+              alignItems: element.props.alignItems || 'stretch',
+              justifyContent: element.props.justifyContent || 'flex-start',
+              flexWrap: element.props.flexWrap || 'nowrap'
+            }}
+            className="transition-all"
+          >
+            {element.props.children && element.props.children.length > 0 ? (
+              element.props.children.map((child) => (
+                <div key={child.id}>
+                  {renderChildElement(child)}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                <FiGrid className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Contenedor vacío</p>
+                <p className="text-xs">Arrastra elementos aquí</p>
+              </div>
+            )}
+          </div>
         );
       case ELEMENT_TYPES.HEADING:
         return (
@@ -371,76 +282,288 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
     }
   };
 
+  const renderChildElement = (childElement) => {
+    switch (childElement.type) {
+      case ELEMENT_TYPES.HEADING:
+        return (
+          <div
+            style={{
+              color: childElement.props.color,
+              fontSize: childElement.props.fontSize,
+              textAlign: childElement.props.alignment,
+            }}
+          >
+            <h1>{childElement.props.text}</h1>
+          </div>
+        );
+      case ELEMENT_TYPES.TEXT:
+        return (
+          <div
+            style={{
+              color: childElement.props.color,
+              fontSize: childElement.props.fontSize,
+              textAlign: childElement.props.alignment,
+            }}
+          >
+            {childElement.props.text}
+          </div>
+        );
+      case ELEMENT_TYPES.IMAGE:
+        return (
+          <img
+            src={childElement.props.src}
+            alt={childElement.props.alt}
+            style={{
+              width: childElement.props.width,
+              height: childElement.props.height,
+              objectFit: 'cover',
+            }}
+          />
+        );
+      case ELEMENT_TYPES.BUTTON:
+        return (
+          <button
+            style={{
+              backgroundColor: childElement.props.backgroundColor,
+              color: childElement.props.textColor,
+              padding: childElement.props.padding,
+              borderRadius: childElement.props.borderRadius,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {childElement.props.text}
+          </button>
+        );
+      default:
+        return <div className="p-4 bg-gray-700 rounded">Elemento: {childElement.type}</div>;
+    }
+  };
+
+  const handleDragStart = (e) => {
+    setIsDragging(true);
+    e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'canvas-element', id: element.id, index }));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    if (data.type === 'canvas-element' && data.id !== element.id) {
+      onReorder(data.index, index);
+    }
+  };
+
   return (
-    <>
-      <div className="w-full h-full bg-gray-100">
-        <div className="w-full h-full overflow-auto">
-          <div className="w-full flex justify-center p-4">
-            <div
-              style={{
-                width: viewportConfig.width,
-                maxWidth: viewportConfig.maxWidth,
-                minHeight: elements.length === 0 ? viewportConfig.minHeight : 'auto',
-                padding: viewportConfig.padding,
-                boxSizing: 'border-box',
-              }}
-              className={`bg-white transition-colors ${
-                viewportMode === VIEWPORT_MODES.DESKTOP ? 'w-full' : 'rounded-lg shadow-lg border border-gray-200'
-              }`}
-              {...canvasDropZone.dropZoneProps}
-            >
-              {elements.length === 0 ? (
-                <div className="flex flex-col items-center justify-center min-h-[500px]">
-                  <div className="text-center text-gray-500 mb-8">
-                    <FiGrid className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <h2 className="text-2xl font-bold mb-3 text-gray-700">
-                      Comienza tu diseño
-                    </h2>
-                    <p className="text-base mb-8 max-w-md mx-auto leading-relaxed">
-                      Arrastra elementos aquí o elige una plantilla
-                    </p>
+    <div
+      ref={dragRef}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      className={`relative group ${isSelected ? 'ring-2 ring-[#8b5cf6]' : ''} ${
+        isDragging ? 'opacity-70' : ''
+      } hover:ring-2 hover:ring-[#8b5cf6] transition-all cursor-pointer`}
+      onClick={() => onSelect(element)}
+    >
+      <div className="relative">
+        {renderElement()}
+        
+        {/* Handle de arrastre */}
+        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="p-1 bg-[#8b5cf6] text-white rounded hover:bg-[#7c3aed] cursor-grab active:cursor-grabbing">
+            <FiMove className="w-3 h-3" />
+          </div>
+        </div>
+        
+        {/* Botones de acción */}
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDuplicate(element.id);
+            }}
+            className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            title="Duplicar"
+          >
+            <FiCopy className="w-3 h-3" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(element.id);
+            }}
+            className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
+            title="Eliminar"
+          >
+            <FiTrash2 className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Componente Canvas principal
+function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onDeleteElement, onDuplicateElement, onReorderElements }) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
+  
+  // Funciones para el sistema de plantillas
+  const handleAddContainerStructure = (structure) => {
+    console.log('📦 Adding container structure:', structure);
+    
+    const elementTemplate = {
+      id: structure.id || `element-${Date.now()}`,
+      type: ELEMENT_TYPES.CONTAINER,
+      name: 'Container Structure',
+      defaultProps: structure.props
+    };
+    
+    onAddElement(elementTemplate);
+  };
+  
+  const handleLoadTemplate = (template) => {
+    console.log('📚 Loading template:', template.name);
+    if (template.elements && template.elements.length > 0) {
+      template.elements.forEach((element, index) => {
+        setTimeout(() => {
+          onAddElement({ ...element, id: `template-element-${Date.now()}-${index}` });
+        }, index * 100);
+      });
+    }
+  };
+  
+  const handleUploadTemplate = (template) => {
+    console.log('📁 Uploading template:', template);
+    if (template.elements && template.elements.length > 0) {
+      template.elements.forEach((element, index) => {
+        setTimeout(() => {
+          onAddElement({ ...element, id: `uploaded-element-${Date.now()}-${index}` });
+        }, index * 100);
+      });
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      
+      if (data.type === 'panel-element') {
+        onAddElement(data.element);
+      }
+    } catch (error) {
+      console.error('Error parsing drag data:', error);
+    }
+  };
+
+  return (
+    <div className="w-full h-full bg-gray-100">
+      <div className="w-full h-full overflow-auto">
+        <div className="w-full flex justify-center p-4">
+          <div
+            style={{
+              width: viewportConfig.width,
+              maxWidth: viewportConfig.maxWidth,
+              minHeight: elements.length === 0 ? viewportConfig.minHeight : 'auto',
+              padding: viewportConfig.padding,
+              boxSizing: 'border-box',
+            }}
+            className={`bg-white transition-colors ${
+              isDragOver ? 'bg-blue-50 ring-2 ring-blue-300' : ''
+            } ${viewportMode === VIEWPORT_MODES.DESKTOP ? 'w-full' : 'rounded-lg shadow-lg border border-gray-200'}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {elements.length === 0 ? (
+              <div className="flex flex-col items-center justify-center min-h-[500px]">
+                <div className={`text-center transition-all duration-300 ${
+                  isDragOver 
+                    ? 'transform scale-105 text-blue-600' 
+                    : 'text-gray-500'
+                }`}>
+                  <div className={`w-20 h-20 mx-auto rounded-full border-2 border-dashed flex items-center justify-center transition-all duration-300 mb-6 ${
+                    isDragOver 
+                      ? 'border-blue-400 bg-blue-50 shadow-lg' 
+                      : 'border-gray-300 bg-gray-50'
+                  }`}>
+                    {isDragOver ? (
+                      <FiPlus className="w-8 h-8 text-blue-500" />
+                    ) : (
+                      <FiGrid className="w-8 h-8 text-gray-400" />
+                    )}
                   </div>
                   
-                  {/* Sistema de plantillas */}
-                  <CanvasTemplateSystem
-                    onAddContainerStructure={handleAddContainerStructure}
-                    onLoadTemplate={handleLoadTemplate}
-                    onUploadTemplate={handleUploadTemplate}
-                  />
+                  <h2 className="text-2xl font-bold mb-3 text-gray-700">
+                    {isDragOver ? '¡Perfecto! Suelta aquí' : 'Comienza tu diseño'}
+                  </h2>
                   
-                  {/* Indicador de drop zone cuando canvas está vacío */}
-                  {canvasDropZone.isDropTarget && (
-                    <div className="absolute inset-0 bg-[#8b5cf6]/10 border-2 border-dashed border-[#8b5cf6] rounded-lg flex items-center justify-center">
-                      <div className="bg-[#8b5cf6] text-white px-4 py-2 rounded-lg font-medium">
-                        Soltar elemento aquí
-                      </div>
-                    </div>
-                  )}
+                  <p className="text-base mb-8 max-w-md mx-auto leading-relaxed">
+                    {isDragOver 
+                      ? 'Tu elemento será agregado al lienzo' 
+                      : 'Arrastra elementos desde el panel lateral o elige una plantilla'}
+                  </p>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {elements.map((element, index) => (
-                    <CanvasElement
-                      key={element.id}
-                      element={element}
-                      selectedElement={selectedElement}
-                      onSelectElement={onSelectElement}
-                      dragDropContext={dragDropContext}
-                      index={index}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+                
+                <CanvasTemplateSystem
+                  onAddContainerStructure={handleAddContainerStructure}
+                  onLoadTemplate={handleLoadTemplate}
+                  onUploadTemplate={handleUploadTemplate}
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {elements.map((element, index) => (
+                  <CanvasElement
+                    key={element.id}
+                    element={element}
+                    index={index}
+                    isSelected={selectedElement?.id === element.id}
+                    onSelect={onSelectElement}
+                    onDelete={onDeleteElement}
+                    onDuplicate={onDuplicateElement}
+                    onReorder={onReorderElements}
+                    selectedElement={selectedElement}
+                    viewportMode={viewportMode}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
-      
-      {/* Ghost de arrastre */}
-      <DragGhost dragState={dragDropContext.dragState} />
-    </>
+    </div>
   );
 }
+  
 
 // Panel de propiedades básico
 function PropertiesPanel({ selectedElement, onUpdateElement }) {
@@ -573,25 +696,30 @@ function Editor({ onExit }) {
     addElement,
     selectElement,
     updateElement,
-    addElementToContainer,
+    deleteElement,
+    duplicateElement,
     reorderElementByIndex,
-    moveToContainer,
   } = useEditor();
-
-  // Sistema drag & drop
-  const dragDropContext = useDragDrop(
-    addElementToContainer, // Para elementos nuevos
-    moveToContainer,       // Para mover elementos existentes  
-    reorderElementByIndex  // Para reordenar elementos
-  );
 
   const handleAddElement = useCallback((elementTemplate) => {
     addElement(elementTemplate);
   }, [addElement]);
 
-  const handleElementDragStart = useCallback((event, element) => {
-    dragDropContext.handleNewElementDragStart(event, element);
-  }, [dragDropContext]);
+  const handleDeleteElement = useCallback((elementId) => {
+    deleteElement(elementId);
+  }, [deleteElement]);
+
+  const handleDuplicateElement = useCallback((elementId) => {
+    const elementToDuplicate = elements.find(el => el.id === elementId);
+    if (elementToDuplicate) {
+      duplicateElement(elementToDuplicate);
+    }
+  }, [elements, duplicateElement]);
+
+  const handleReorderElements = useCallback((fromIndex, toIndex) => {
+    console.log('Reordering elements from', fromIndex, 'to', toIndex);
+    reorderElementByIndex(elements[fromIndex].id, toIndex);
+  }, [elements, reorderElementByIndex]);
 
   const handleSave = () => {
     console.log('Guardando página...', elements);
@@ -697,8 +825,7 @@ function Editor({ onExit }) {
       <div className="flex" style={{ height: 'calc(100vh - 80px)' }}>
         {/* Panel de elementos */}
         <ElementsPanel 
-          onAddElement={handleAddElement} 
-          onElementDragStart={handleElementDragStart}
+          onAddElement={handleAddElement}
         />
 
         {/* Canvas central */}
@@ -709,8 +836,9 @@ function Editor({ onExit }) {
             onSelectElement={selectElement}
             viewportMode={viewportMode}
             onAddElement={handleAddElement}
-            onLoadTemplate={(template) => console.log('Template loaded:', template.name)}
-            dragDropContext={dragDropContext}
+            onDeleteElement={handleDeleteElement}
+            onDuplicateElement={handleDuplicateElement}
+            onReorderElements={handleReorderElements}
           />
         </div>
 
