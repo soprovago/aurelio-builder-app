@@ -40,18 +40,22 @@ function ContainerChild({
   }, [isMenuOpen]);
 
   const handleDragStart = (e) => {
-    console.log('🚀 ContainerChild drag started:', element.id, element.type);
+    console.log('🚀 ContainerChild drag started:', element.id, element.type, 'Parent:', parentElement?.id);
     setIsDragging(true);
     setIsMenuOpen(false);
-    e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'canvas-element', id: element.id }));
+    e.dataTransfer.setData('text/plain', JSON.stringify({ 
+      type: 'canvas-element', 
+      id: element.id,
+      parentId: parentElement?.id || null // Incluir información del padre
+    }));
     e.dataTransfer.effectAllowed = 'move';
-    e.stopPropagation();
+    // No detener la propagación para permitir que el parent también pueda manejar el evento
   };
 
   const handleDragEnd = (e) => {
     console.log('🏁 ContainerChild drag ended:', element.id);
     setIsDragging(false);
-    e.stopPropagation();
+    // No detener propagación para permitir que otros componentes manejen el evento
   };
 
   const renderChildElement = () => {
@@ -230,15 +234,15 @@ function ContainerChild({
     }
   };
 
-  // Solo hacer draggable elementos que no sean contenedores (los contenedores manejan su propio drag)
-  const shouldBeDraggable = element.type !== ELEMENT_TYPES.CONTAINER;
+  // Todos los elementos deben ser draggable, incluyendo contenedores
+  const shouldBeDraggable = true;
 
   return (
     <div
       ref={childRef}
       draggable={shouldBeDraggable}
-      onDragStart={shouldBeDraggable ? handleDragStart : undefined}
-      onDragEnd={shouldBeDraggable ? handleDragEnd : undefined}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       className={`relative group/item ${isSelected ? 'ring-2 ring-[#8b5cf6]' : ''} ${
         isDragging ? 'opacity-70' : ''
       } hover:ring-2 hover:ring-[#8b5cf6] transition-all`}
