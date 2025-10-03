@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEditor } from '../../hooks/useEditor';
 import { ELEMENT_TYPES } from '../../constants/elementTypes';
@@ -187,9 +187,27 @@ function ElementsPanel({ onAddElement }) {
 }
 
 // Componente CanvasElement (elemento individual en canvas)
-function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onReorder, selectedElement, viewportMode }) {
+function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onReorder, onAddElementAtIndex, selectedElement, viewportMode }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dragRef = useRef(null);
+  const menuRef = useRef(null);
+
+  // Efecto para cerrar el menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isMenuOpen]);
 
   const renderElement = () => {
     switch (element.type) {
@@ -344,6 +362,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
 
   const handleDragStart = (e) => {
     setIsDragging(true);
+    setIsMenuOpen(false); // Cerrar menú al iniciar drag
     e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'canvas-element', id: element.id, index }));
     e.dataTransfer.effectAllowed = 'move';
     
@@ -372,7 +391,17 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    e.dataTransfer.dropEffect = 'move';
+    
+    // Verificar qué tipo de elemento se está arrastrando
+    const dataTransfer = e.dataTransfer;
+    let dropEffect = 'move';
+    
+    // Para elementos del sidebar, usar 'copy'
+    if (dataTransfer.effectAllowed === 'copy') {
+      dropEffect = 'copy';
+    }
+    
+    e.dataTransfer.dropEffect = dropEffect;
     
     // Determinar si estamos en la mitad superior o inferior
     const rect = e.currentTarget.getBoundingClientRect();
@@ -396,8 +425,20 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     
     try {
       const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-      if (data.type === 'canvas-element' && data.id !== element.id) {
-        // Calcular el índice de destino basado en la posición
+      
+      if (data.type === 'panel-element') {
+        // Elemento desde el sidebar - insertarlo en la posición correcta
+        let targetIndex = index;
+        if (dragOverPosition === 'bottom') {
+          targetIndex = index + 1;
+        }
+        
+        // Llamar a la función de agregar elemento con el índice específico
+        if (typeof onAddElementAtIndex === 'function') {
+          onAddElementAtIndex(data.element, targetIndex);
+        }
+      } else if (data.type === 'canvas-element' && data.id !== element.id) {
+        // Reordenar elementos existentes
         let targetIndex = index;
         if (dragOverPosition === 'bottom') {
           targetIndex = index + 1;
@@ -455,28 +496,50 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
             </div>
           </div>
           
-          {/* Botones de acción */}
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 pointer-events-auto">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDuplicate(element.id);
-              }}
-              className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 shadow-lg"
-              title="Duplicar"
-            >
-              <FiCopy className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(element.id);
-              }}
-              className="p-1 bg-red-500 text-white rounded hover:bg-red-600 shadow-lg"
-              title="Eliminar"
-            >
-              <FiTrash2 className="w-3 h-3" />
-            </button>
+          {/* Menú desplegable de acciones */}
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto" ref={menuRef}>
+            <div className="relative">
+              {/* Botón de menú (3 puntos) */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMenuOpen(!isMenuOpen);
+                }}
+                className="p-1 bg-gray-800 bg-opacity-80 text-white rounded hover:bg-gray-700 shadow-lg transition-colors"
+                title="Más opciones"
+              >
+                <FiMoreVertical className="w-3 h-3" />
+              </button>
+              
+              {/* Menú desplegable */}
+              {isMenuOpen && (
+                <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px] z-50">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDuplicate(element.id);
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors"
+                  >
+                    <FiCopy className="w-4 h-4 text-blue-500" />
+                    Duplicar
+                  </button>
+                  <div className="border-t border-gray-100"></div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(element.id);
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                  >
+                    <FiTrash2 className="w-4 h-4" />
+                    Eliminar
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Overlay para indicar que es arrastrable */}
@@ -498,7 +561,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
 }
 
 // Componente Canvas principal
-function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onDeleteElement, onDuplicateElement, onReorderElements }) {
+function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onAddElementAtIndex, onDeleteElement, onDuplicateElement, onReorderElements }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
   
@@ -626,20 +689,21 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
               <>
                 {/* Elementos del canvas */}
                 <div className="space-y-2 mb-8">
-                  {elements.map((element, index) => (
-                    <CanvasElement
-                      key={element.id}
-                      element={element}
-                      index={index}
-                      isSelected={selectedElement?.id === element.id}
-                      onSelect={onSelectElement}
-                      onDelete={onDeleteElement}
-                      onDuplicate={onDuplicateElement}
-                      onReorder={onReorderElements}
-                      selectedElement={selectedElement}
-                      viewportMode={viewportMode}
-                    />
-                  ))}
+                {elements.map((element, index) => (
+                  <CanvasElement
+                    key={element.id}
+                    element={element}
+                    index={index}
+                    isSelected={selectedElement?.id === element.id}
+                    onSelect={onSelectElement}
+                    onDelete={onDeleteElement}
+                    onDuplicate={onDuplicateElement}
+                    onReorder={onReorderElements}
+                    onAddElementAtIndex={onAddElementAtIndex}
+                    selectedElement={selectedElement}
+                    viewportMode={viewportMode}
+                  />
+                ))}
                 </div>
                 
                 {/* Sistema de plantillas siempre visible */}
@@ -789,10 +853,11 @@ function Editor({ onExit }) {
     elements,
     selectedElement,
     addElement,
+    addElementAtIndex,
     selectElement,
     updateElement,
     deleteElement,
-    duplicateElement,
+    duplicateElementAtIndex,
     reorderElementByIndex,
   } = useEditor();
 
@@ -800,16 +865,17 @@ function Editor({ onExit }) {
     addElement(elementTemplate);
   }, [addElement]);
 
+  const handleAddElementAtIndex = useCallback((elementTemplate, index) => {
+    addElementAtIndex(elementTemplate, index);
+  }, [addElementAtIndex]);
+
   const handleDeleteElement = useCallback((elementId) => {
     deleteElement(elementId);
   }, [deleteElement]);
 
   const handleDuplicateElement = useCallback((elementId) => {
-    const elementToDuplicate = elements.find(el => el.id === elementId);
-    if (elementToDuplicate) {
-      duplicateElement(elementToDuplicate);
-    }
-  }, [elements, duplicateElement]);
+    duplicateElementAtIndex(elementId);
+  }, [duplicateElementAtIndex]);
 
   const handleReorderElements = useCallback((fromIndex, toIndex) => {
     console.log('Reordering elements from', fromIndex, 'to', toIndex);
@@ -931,6 +997,7 @@ function Editor({ onExit }) {
             onSelectElement={selectElement}
             viewportMode={viewportMode}
             onAddElement={handleAddElement}
+            onAddElementAtIndex={handleAddElementAtIndex}
             onDeleteElement={handleDeleteElement}
             onDuplicateElement={handleDuplicateElement}
             onReorderElements={handleReorderElements}

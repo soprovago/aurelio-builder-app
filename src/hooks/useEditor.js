@@ -61,6 +61,33 @@ export const useEditor = (initialState = {}) => {
   }, []);
 
   /**
+   * Agregar elemento en un índice específico
+   * 
+   * @param {Object} elementConfig - Configuración del elemento
+   * @param {number} targetIndex - Índice donde insertar
+   */
+  const addElementAtIndex = useCallback((elementConfig, targetIndex) => {
+    console.log('🆕 Adding element at index:', elementConfig.name, 'at index', targetIndex);
+    
+    const newElement = {
+      id: generateId(),
+      type: elementConfig.type,
+      props: { ...elementConfig.defaultProps },
+    };
+
+    setElements(prev => {
+      const newElements = [...prev];
+      newElements.splice(targetIndex, 0, newElement);
+      return newElements;
+    });
+
+    // Auto-seleccionar el nuevo elemento
+    setSelectedElement(newElement);
+    
+    return newElement;
+  }, []);
+
+  /**
    * Eliminar elemento por ID
    * 
    * @param {string} elementId - ID del elemento a eliminar
@@ -123,6 +150,36 @@ export const useEditor = (initialState = {}) => {
     }
 
     return duplicatedElement;
+  }, []);
+
+  /**
+   * Duplicar elemento en una posición específica (justo después del original)
+   * 
+   * @param {string} elementId - ID del elemento a duplicar
+   */
+  const duplicateElementAtIndex = useCallback((elementId) => {
+    console.log('📋 Duplicating element at index:', elementId);
+    
+    setElements(prev => {
+      const elementIndex = prev.findIndex(el => el.id === elementId);
+      if (elementIndex === -1) {
+        console.error('❌ Element not found for duplication:', elementId);
+        return prev;
+      }
+      
+      const originalElement = prev[elementIndex];
+      const duplicatedElement = {
+        ...originalElement,
+        id: generateId(),
+        props: { ...originalElement.props }
+      };
+      
+      // Insertar justo después del elemento original
+      const newElements = [...prev];
+      newElements.splice(elementIndex + 1, 0, duplicatedElement);
+      
+      return newElements;
+    });
   }, []);
 
   /**
@@ -347,8 +404,10 @@ export const useEditor = (initialState = {}) => {
     
     // Operaciones de elementos
     addElement,
+    addElementAtIndex,
     deleteElement,
     duplicateElement,
+    duplicateElementAtIndex,
     updateElement,
     selectElement,
     
