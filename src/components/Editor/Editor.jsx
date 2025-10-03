@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEditor } from '../../hooks/useEditor';
 import { ELEMENT_TYPES } from '../../constants/elementTypes';
 import { VIEWPORT_MODES, VIEWPORT_CONFIGS } from '../../constants/viewportConfigs';
-import { getResponsiveProperty } from '../../utils/responsiveUtils';
+import { getResponsiveProperty } from '../../shared/utils/responsiveUtils';
 import AurelioLogo from '../shared/AurelioLogo';
 import CanvasTemplateSystem from './components/CanvasTemplateSystem';
 import './slider-styles.css';
@@ -28,7 +28,10 @@ import {
   FiMoreVertical,
   FiDroplet,
   FiSliders,
-  FiPlus
+  FiPlus,
+  FiInbox,
+  FiPackage,
+  FiTarget
 } from 'react-icons/fi';
 import AddContainerButton from './components/AddContainerButton';
 
@@ -40,22 +43,12 @@ const availableElements = [
     name: 'Contenedor',
     icon: <FiGrid className="w-5 h-5" />,
     defaultProps: {
-      layout: 'vertical',
-      gap: '16px',
+      children: [], // Array para elementos hijos
       padding: '20px',
+      minHeight: '150px',
       backgroundColor: 'transparent',
-      borderRadius: '0px',
-      border: 'none',
-      minHeight: '100px',
-      alignment: 'left',
-      children: [], // Asegurar que children esté inicializado
-      flexDirection: 'column',
-      justifyContent: 'flex-start',
-      alignItems: 'stretch',
-      flexWrap: 'nowrap',
-      width: '100%',
-      height: '200px',
-      widthType: 'full'
+      border: '2px dashed #d1d5db',
+      borderRadius: '8px'
     }
   },
   {
@@ -124,7 +117,7 @@ function PanelElement({ element, onClick }) {
   };
 
   const handleDragStart = (e) => {
-    console.log('🚀 PanelElement drag started:', element.name);
+    console.log('Drag started:', element.name);
     setIsDragging(true);
     e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'panel-element', element: element }));
     e.dataTransfer.effectAllowed = 'copy';
@@ -188,7 +181,7 @@ function ElementsPanel({ onAddElement }) {
 }
 
 // Componente CanvasElement (elemento individual en canvas)
-function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder }) {
+function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder, allElements }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAddButton, setShowAddButton] = useState(false);
@@ -213,28 +206,187 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     }
   }, [isMenuOpen]);
 
+
   const renderElement = () => {
     switch (element.type) {
       case ELEMENT_TYPES.CONTAINER:
+        // Funciones drag & drop para el Container (como mini-canvas)
+        const handleContainerDragOver = (e) => {
+          e.preventDefault(); // 🎯 CRITICO: Prevenir comportamiento por defecto
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'copy'; // 🎯 CRITICO: Indicar que aceptamos drop
+          setIsDragOver(true);
+          return false; // 🎯 CRITICO: Asegurar que el drop sea válido
+        };
+
+        const handleContainerDragLeave = (e) => {
+          if (!e.currentTarget.contains(e.relatedTarget)) {
+            setIsDragOver(false);
+          }
+        };
+
+        const handleContainerDrop = (e) => {
+          console.log('Container drop received on', element.id);
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Retrasar el cambio de estado para no cancelar el drop
+          setTimeout(() => setIsDragOver(false), 100);
+          
+          try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            
+            if (data.type === 'panel-element') {
+              console.log('Adding element to container:', data.element.name);
+              if (onAddToContainer) {
+                onAddToContainer(element.id, data.element);
+              }
+            } else if (data.type === 'canvas-element') {
+              console.log('Moving element to container:', data.id);
+              if (onMoveToContainer) {
+                onMoveToContainer(data.id, element.id);
+              }
+            }
+          } catch (error) {
+            console.error('Container drop error:', error);
+          }
+        };
+
+
+        // Verificar si hay elementos hijos
+        const hasChildren = element.props.children && element.props.children.length > 0;
+        
+        // Calcular profundidad del contenedor para indicador visual
+        const getContainerDepth = (elements, targetId, currentDepth = 0) => {
+          for (const el of elements) {
+            if (el.id === targetId) {
+              return currentDepth;
+            }
+            if (el.props?.children) {
+              const foundDepth = getContainerDepth(el.props.children, targetId, currentDepth + 1);
+              if (foundDepth !== -1) return foundDepth;
+            }
+          }
+          return -1;
+        };
+        
+        const containerDepth = allElements ? getContainerDepth([...allElements], element.id) : 0;
+
         return (
           <div
+            onDragOver={handleContainerDragOver}
+            onDragLeave={handleContainerDragLeave}
+            onDrop={handleContainerDrop}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.dataTransfer.dropEffect = 'copy';
+              setIsDragOver(true);
+              return false;
+            }}
+            className={`relative transition-all duration-300 ease-in-out ${
+              isDragOver 
+                ? 'shadow-lg transform scale-[1.02]' 
+                : 'hover:shadow-md'
+            }`}
             style={{
-              width: '100%',
-              minHeight: '150px',
-              padding: '20px',
-              border: '1px dashed #d1d5db',
-              borderRadius: '8px',
-              backgroundColor: 'transparent',
+              minHeight: element.props.minHeight || (hasChildren ? '120px' : '200px'),
+              padding: element.props.padding || (hasChildren ? '16px' : '48px'),
+              backgroundColor: element.props.backgroundColor || (isDragOver ? '#dbeafe' : '#f8fafc'),
+              border: element.props.border || (isDragOver ? '3px solid #3b82f6' : '2px dashed #cbd5e1'),
+              borderRadius: element.props.borderRadius || '12px',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              flexDirection: 'column',
+              alignItems: hasChildren ? 'stretch' : 'center',
+              justifyContent: hasChildren ? 'flex-start' : 'center',
+              cursor: isDragOver ? 'copy' : 'default',
+              position: 'relative'
             }}
           >
-            <div className="text-center text-gray-400">
-              <FiGrid className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Contenedor vacío</p>
-              <p className="text-xs">Sin funcionalidad por ahora</p>
+            {/* Indicador de profundidad */}
+            {containerDepth > 0 && (
+              <div className="absolute top-2 left-2 z-10">
+                <div className="flex items-center gap-1 px-2 py-1 bg-gray-700 text-white text-xs rounded-full">
+                  <FiGrid className="w-3 h-3" />
+                  <span>Nivel {containerDepth + 1}</span>
+                </div>
+              </div>
+            )}
+            
+            {/* Badge de contenedor con contador de hijos */}
+            <div className="absolute top-2 right-2 z-10">
+              <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full border border-blue-200">
+                <FiPackage className="w-3 h-3" />
+                <span>{hasChildren ? `${element.props.children.length} elemento${element.props.children.length !== 1 ? 's' : ''}` : 'Vacío'}</span>
+              </div>
             </div>
+            
+            {/* Overlay de drop activo mejorado */}
+            {isDragOver && (
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-200/30 to-blue-300/30 border-2 border-blue-400 border-dashed rounded-xl flex items-center justify-center z-20 backdrop-blur-sm">
+                <div className="bg-blue-500 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-blue-300">
+                  <div className="w-8 h-8 bg-blue-400 rounded-lg flex items-center justify-center">
+                    <FiTarget className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-sm">Soltar elemento aquí</span>
+                    <span className="text-blue-200 text-xs">
+                      {containerDepth > 0 ? `Nivel ${containerDepth + 1}` : 'Contenedor principal'} • {hasChildren ? `${element.props.children.length} elementos` : 'Vacío'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Contenido del contenedor */}
+            {hasChildren ? (
+              // Renderizar elementos hijos
+              <div className="w-full">
+                <div className="space-y-2">
+                  {element.props.children.map((child, childIndex) => (
+                    <CanvasElement
+                      key={child.id}
+                      element={child}
+                      index={childIndex}
+                      isSelected={selectedElement?.id === child.id}
+                      onSelect={onSelect}
+                      onDelete={onDelete}
+                      onDuplicate={onDuplicate}
+                      onAddToContainer={onAddToContainer}
+                      onMoveToContainer={onMoveToContainer}
+                      selectedElement={selectedElement}
+                      viewportMode={viewportMode}
+                      onUpdateElement={onUpdateElement}
+                      onAddElementAtIndex={onAddElementAtIndex}
+                      onReorder={onReorder}
+                      onAddElement={onAddElement}
+                      allElements={allElements}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              // Estado vacío mejorado
+              <div className="text-center w-full h-full flex flex-col items-center justify-center relative z-10">
+                {!isDragOver && (
+                  <>
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-dashed border-gray-300 flex items-center justify-center mb-6 transition-all duration-300 hover:from-blue-50 hover:to-blue-100 hover:border-blue-300">
+                      <FiInbox className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-600 mb-2">
+                      Contenedor Vacío
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-4 max-w-xs mx-auto leading-relaxed">
+                      Arrastra cualquier elemento desde el panel lateral para comenzar
+                    </p>
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <FiGrid className="w-4 h-4" />
+                      <span>Soporta anidación ilimitada</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         );
       case ELEMENT_TYPES.HEADING:
@@ -360,7 +512,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
   };
 
   const handleDragStart = (e) => {
-    console.log('🚀 CanvasElement drag started:', element.type, element.id);
+    console.log('Drag started:', element.type, element.id);
     setIsDragging(true);
     setIsMenuOpen(false); // Cerrar menú al iniciar drag
     e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'canvas-element', id: element.id, index }));
@@ -472,9 +624,9 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         draggable={true} // Hacer todos los elementos draggable
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        onDragOver={handleDragOver} // Todos los elementos pueden recibir drop
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        onDragOver={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragOver} // Solo no-contenedores
+        onDragLeave={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragLeave}
+        onDrop={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDrop}
         onMouseEnter={() => setShowAddButton(true)}
         onMouseLeave={() => setShowAddButton(false)}
         className={`relative group ${
@@ -491,7 +643,9 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
           }
         }}
       >
-        <div className="relative pointer-events-none">
+        <div className={`relative ${
+          element.type === ELEMENT_TYPES.CONTAINER ? 'pointer-events-auto' : 'pointer-events-none'
+        }`}>
           {renderElement()}
           
           {/* Handle de arrastre */}
@@ -719,6 +873,7 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                     onAddElementAtIndex={onAddElementAtIndex}
                     onReorder={onReorder}
                     onAddElement={onAddElement}
+                    allElements={elements}
                   />
                 ))}
                 </div>
@@ -731,6 +886,7 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                     onUploadTemplate={handleUploadTemplate}
                   />
                 </div>
+                
               </>
             )}
           </div>
@@ -765,6 +921,105 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
   return (
     <div className="w-80 bg-[#1a1a1a] border-l border-[#2a2a2a] p-6 overflow-y-auto">
       <h3 className="text-white font-semibold mb-4">Propiedades</h3>
+      
+      {/* Propiedades del contenedor */}
+      {selectedElement.type === ELEMENT_TYPES.CONTAINER && (
+        <>
+          <div className="mb-6">
+            <h4 className="text-sm font-medium text-gray-200 mb-3 flex items-center gap-2">
+              <FiPackage className="w-4 h-4" />
+              Contenedor
+            </h4>
+            
+            {/* Padding */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Espaciado Interno</label>
+              <input
+                type="text"
+                value={selectedElement.props.padding || '20px'}
+                onChange={(e) => handlePropertyChange('padding', e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+                placeholder="20px"
+              />
+            </div>
+            
+            {/* Altura mínima */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Altura Mínima</label>
+              <input
+                type="text"
+                value={selectedElement.props.minHeight || '150px'}
+                onChange={(e) => handlePropertyChange('minHeight', e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+                placeholder="150px"
+              />
+            </div>
+            
+            {/* Color de fondo */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Color de Fondo</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={selectedElement.props.backgroundColor === 'transparent' ? '#ffffff' : (selectedElement.props.backgroundColor || '#ffffff')}
+                  onChange={(e) => handlePropertyChange('backgroundColor', e.target.value)}
+                  className="w-12 h-10 bg-[#2a2a2a] border border-[#3a3a3a] rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={selectedElement.props.backgroundColor || 'transparent'}
+                  onChange={(e) => handlePropertyChange('backgroundColor', e.target.value)}
+                  className="flex-1 px-3 py-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-sm font-mono"
+                  placeholder="transparent"
+                />
+              </div>
+            </div>
+            
+            {/* Borde */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Borde</label>
+              <input
+                type="text"
+                value={selectedElement.props.border || '2px dashed #d1d5db'}
+                onChange={(e) => handlePropertyChange('border', e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm font-mono"
+                placeholder="2px dashed #d1d5db"
+              />
+            </div>
+            
+            {/* Radio del borde */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Radio del Borde</label>
+              <input
+                type="text"
+                value={selectedElement.props.borderRadius || '8px'}
+                onChange={(e) => handlePropertyChange('borderRadius', e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+                placeholder="8px"
+              />
+            </div>
+            
+            {/* Información del contenedor */}
+            <div className="mt-4 p-3 bg-[#0f0f0f] rounded border border-[#3a3a3a]">
+              <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
+                <FiGrid className="w-3 h-3" />
+                <span>Elementos hijos: {selectedElement.props.children?.length || 0}</span>
+              </div>
+              <div className="text-xs text-gray-500">
+                {selectedElement.props.children?.length > 0 ? (
+                  selectedElement.props.children.map((child, index) => (
+                    <div key={child.id} className="flex items-center gap-1 mt-1">
+                      <span>• {child.type.charAt(0).toUpperCase() + child.type.slice(1)}</span>
+                    </div>
+                  ))
+                ) : (
+                  <span>No hay elementos dentro del contenedor</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       
       {(selectedElement.type === ELEMENT_TYPES.HEADING || selectedElement.type === ELEMENT_TYPES.TEXT) && (
         <>
@@ -876,7 +1131,7 @@ function Editor({ onExit }) {
 
   // Función para agregar elementos al canvas principal
   const addElement = useCallback((elementTemplate) => {
-    console.log('🆕 Adding element to canvas:', elementTemplate.name);
+    console.log('Adding element to canvas:', elementTemplate.name);
     
     const newElement = {
       id: `${elementTemplate.type}-${generateId()}`,
@@ -890,7 +1145,7 @@ function Editor({ onExit }) {
     return newElement;
   }, []);
 
-  // Función para buscar y actualizar elementos anidados recursivamente (de WEMax)
+  // Función para buscar y actualizar elementos anidados recursivamente
   const updateNestedElement = (elements, targetId, updater) => {
     return elements.map(element => {
       if (element.id === targetId) {
@@ -909,28 +1164,50 @@ function Editor({ onExit }) {
     });
   };
 
-  // Función para agregar elementos a contenedores (exacta de WEMax)
+  // Función para encontrar un elemento en cualquier nivel de la jerarquía
+  const findElementById = (elements, targetId) => {
+    for (const element of elements) {
+      if (element.id === targetId) {
+        return element;
+      }
+      if (element.props?.children) {
+        const found = findElementById(element.props.children, targetId);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  // Función para obtener la ruta completa de un elemento (para debugging)
+  const getElementPath = (elements, targetId, path = []) => {
+    for (let i = 0; i < elements.length; i++) {
+      const element = elements[i];
+      const currentPath = [...path, { id: element.id, type: element.type, index: i }];
+      
+      if (element.id === targetId) {
+        return currentPath;
+      }
+      
+      if (element.props?.children) {
+        const found = getElementPath(element.props.children, targetId, currentPath);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  // Función para agregar elementos a contenedores
   const addToContainer = useCallback((containerId, elementTemplate) => {
-    console.log('🔥 addToContainer called:', {
-      containerId,
-      elementType: elementTemplate.type,
-      elementName: elementTemplate.name
-    });
+    console.log('Adding', elementTemplate.name, 'to container', containerId);
     
     const newElement = {
       id: `${elementTemplate.type}-${generateId()}`,
       type: elementTemplate.type,
       props: { ...elementTemplate.defaultProps },
     };
-    
-    console.log('✨ Created new element:', newElement);
 
     setElements((prev) => {
-      console.log('📋 Current elements before update:', prev);
-      
       const updated = updateNestedElement(prev, containerId, (container) => {
-        console.log('🎯 Found container to update:', container.id, 'Current children:', container.props.children?.length || 0);
-        
         const updatedContainer = {
           ...container,
           props: {
@@ -939,21 +1216,17 @@ function Editor({ onExit }) {
           }
         };
         
-        console.log('✅ Updated container children count:', updatedContainer.props.children.length);
+        console.log('✅ Element added! Container now has', updatedContainer.props.children.length, 'children');
         return updatedContainer;
       });
       
-      console.log('📋 Elements after update:', updated);
       return updated;
     });
   }, []);
 
-  // Función para mover elementos existentes (exacta de WEMax)
+  // Función para mover elementos existentes
   const moveToContainer = useCallback((elementId, containerId) => {
-    console.log('🚚 moveToContainer called:', {
-      elementId,
-      containerId
-    });
+    console.log('Moving element', elementId, 'to container', containerId);
 
     // Función recursiva para encontrar el elemento en cualquier nivel
     const findAndRemoveElement = (elements, targetId) => {
@@ -986,51 +1259,39 @@ function Editor({ onExit }) {
     };
 
     setElements((prev) => {
-      console.log('📋 Current elements before move:', prev);
-      
       // 1. Encontrar y remover el elemento de su posición actual
       const { elements: elementsAfterRemoval, foundElement } = findAndRemoveElement(prev, elementId);
       
       if (!foundElement) {
-        console.error('❌ Element not found:', elementId);
+        console.error('Element not found:', elementId);
         return prev;
       }
       
-      console.log('✅ Found element to move:', foundElement);
-      console.log('📋 Elements after removal:', elementsAfterRemoval);
-      
       // 2. Si containerId es null, mover al canvas principal
       if (containerId === null) {
-        console.log('🎯 Moving element to main canvas');
-        const updated = [...elementsAfterRemoval, foundElement];
-        console.log('📋 Final elements after move to canvas:', updated);
-        return updated;
+        console.log('Moving element to main canvas');
+        return [...elementsAfterRemoval, foundElement];
       }
       
       // 3. Si no, agregar el elemento al contenedor de destino
       const updated = updateNestedElement(elementsAfterRemoval, containerId, (container) => {
-        console.log('🎯 Adding element to container:', container.id);
-        
-        const updatedContainer = {
+        return {
           ...container,
           props: {
             ...container.props,
             children: [...(container.props.children || []), foundElement]
           }
         };
-        
-        console.log('✅ Container updated with new child');
-        return updatedContainer;
       });
       
-      console.log('📋 Final elements after move:', updated);
+      console.log('Element moved successfully');
       return updated;
     });
   }, []);
 
   // Función para actualizar elementos
   const updateElement = useCallback((updatedElement) => {
-    console.log('🚀 updateElement called with:', updatedElement.id);
+    console.log('Updating element:', updatedElement.id);
     
     // Función recursiva para buscar y actualizar el elemento
     const updateElementRecursively = (elements) => {
@@ -1104,7 +1365,7 @@ function Editor({ onExit }) {
 
   // Función para agregar elemento en un índice específico (reordenamiento)
   const addElementAtIndex = useCallback((elementTemplate, index) => {
-    console.log('🎯 addElementAtIndex:', elementTemplate.name, 'at index:', index);
+    console.log('Adding element at index:', elementTemplate.name, 'at index:', index);
     
     const newElement = {
       id: `${elementTemplate.type}-${generateId()}`,
@@ -1124,7 +1385,7 @@ function Editor({ onExit }) {
 
   // Función para reordenar elementos en el canvas
   const reorderElements = useCallback((fromIndex, toIndex) => {
-    console.log('🔄 reorderElements:', fromIndex, '->', toIndex);
+    console.log('Reordering elements:', fromIndex, '->', toIndex);
     
     setElements(prev => {
       const newElements = [...prev];
