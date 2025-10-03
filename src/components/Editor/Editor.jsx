@@ -31,7 +31,7 @@ import {
   FiPlus
 } from 'react-icons/fi';
 import AddContainerButton from './components/AddContainerButton';
-import ContainerChild from './components/ContainerChild';
+import SimpleContainerChild from './components/SimpleContainerChild';
 
 // Elementos disponibles en la sidebar
 const availableElements = [
@@ -303,7 +303,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
                     ? 'flex-1 min-w-0 relative' 
                     : 'w-full'
                 }>
-                  <ContainerChild
+                  <SimpleContainerChild
                     element={child}
                     onSelect={onSelect}
                     onDelete={(childId) => onDelete(childId, element.id)}
@@ -312,9 +312,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
                     onAddToContainer={onAddToContainer}
                     onMoveToContainer={onMoveToContainer}
                     selectedElement={selectedElement}
-                    viewportMode={viewportMode}
                     parentElement={element}
-                    onUpdateElement={onUpdateElement}
                   />
                 </div>
               ))
