@@ -66,6 +66,16 @@ function ContainerChild({
             onDragOver={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              // Verificar qué tipo de elemento se está arrastrando
+              const dataTransfer = e.dataTransfer;
+              let dropEffect = 'move';
+              
+              // Para elementos del sidebar, usar 'copy'
+              if (dataTransfer.effectAllowed === 'copy') {
+                dropEffect = 'copy';
+              }
+              
+              e.dataTransfer.dropEffect = dropEffect;
               setIsDragOver(true);
             }}
             onDragLeave={(e) => {
@@ -87,10 +97,18 @@ function ContainerChild({
                 
                 if (data.type === 'panel-element') {
                   console.log('✅ Adding element to nested container:', element.id, 'Element:', data.element.name);
-                  onAddToContainer(element.id, data.element);
+                  if (typeof onAddToContainer === 'function') {
+                    onAddToContainer(element.id, data.element);
+                  } else {
+                    console.error('❌ onAddToContainer is not a function!');
+                  }
                 } else if (data.type === 'canvas-element') {
                   console.log('✅ Moving EXISTING element to nested container:', element.id, 'Element ID:', data.id);
-                  onMoveToContainer && onMoveToContainer(data.id, element.id);
+                  if (typeof onMoveToContainer === 'function') {
+                    onMoveToContainer(data.id, element.id);
+                  } else {
+                    console.error('❌ onMoveToContainer is not a function!');
+                  }
                 } else {
                   console.log('❌ Drag data type not recognized:', data.type);
                 }
@@ -125,8 +143,9 @@ function ContainerChild({
               justifyContent: element.props.justifyContent || 'flex-start',
               flexWrap: element.props.flexWrap || 'nowrap',
               boxSizing: 'border-box',
-              overflow: 'visible',
-              flexShrink: 0,
+              overflow: 'visible', // ✅ Permitir expansión del contenido
+              flexShrink: 0, // ✅ No encogerse
+              flex: '0 0 auto', // ✅ Usar tamaño natural sin crecer/encogerse forzadamente
             }}
             className={isDragOver ? 'bg-gray-50' : ''}
           >

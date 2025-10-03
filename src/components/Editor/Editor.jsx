@@ -291,8 +291,8 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               justifyContent: element.props.justifyContent || 'flex-start',
               flexWrap: element.props.flexWrap || 'nowrap',
               boxSizing: 'border-box',
-              overflow: 'visible',
-              flexShrink: 0,
+              overflow: 'visible', // ✅ Permitir expansión visual del contenido
+              flexShrink: 0, // ✅ No encogerse
             }}
             className={`transition-all ${isDragOver ? 'bg-gray-50' : ''}`}
           >
