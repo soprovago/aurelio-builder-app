@@ -45,7 +45,7 @@ const CONTROL_STYLES = {
 
 
 // Componente CanvasElement (elemento individual en canvas)
-function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder, allElements }) {
+function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder, allElements, isNested = false, parentId = null }) {
   const [isDragging, setIsDragging] = useState(false);
   const [showAddButton, setShowAddButton] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -141,6 +141,8 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               onReorder={onReorder}
               onAddElement={onAddElement}
               allElements={allElements}
+              isNested={true}
+              parentId={element.id}
             />
           </div>
         ))
@@ -156,6 +158,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
           onDrop={handleContainerDrop}
           onDragEnter={handleContainerDragEnter}
           onSelect={onSelect}
+          isNested={isNested}
         >
           {containerChildren}
         </ContainerElement>
@@ -326,7 +329,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDuplicate(element.id);
+                  onDuplicate(element, parentId);
                 }}
                 className={CONTROL_STYLES.button}
                 title="Duplicar"
@@ -337,7 +340,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(element.id);
+                  onDelete(element.id, parentId);
                 }}
                 className={CONTROL_STYLES.deleteButton}
                 title="Eliminar"

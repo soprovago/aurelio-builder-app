@@ -71,9 +71,13 @@ export const ContainerElement = ({
   onDragLeave, 
   onDrop, 
   onDragEnter, 
-  onSelect 
+  onSelect,
+  isNested = false // Nueva prop para indicar si el contenedor está anidado
 }) => {
   const hasChildren = element.props.children && element.props.children.length > 0;
+  
+  // Determinar si el contenedor tiene color personalizado
+  const hasCustomColor = element.props.backgroundColor && element.props.backgroundColor !== 'transparent';
 
   return (
     <div
@@ -94,8 +98,8 @@ export const ContainerElement = ({
       style={{
         minHeight: element.props.minHeight || (hasChildren ? '120px' : '200px'),
         padding: element.props.padding || (hasChildren ? '16px' : '48px'),
-        backgroundColor: element.props.backgroundColor || (isDragOver ? '#dbeafe' : 'transparent'),
-        border: element.props.border || (isDragOver ? '3px solid #3b82f6' : (isSelected ? '2px solid #8b5cf6' : 'none')),
+        backgroundColor: isDragOver ? '#dbeafe' : (element.props.backgroundColor || (isNested && !hasCustomColor ? '#f8fafc' : 'transparent')),
+        border: isDragOver ? '3px solid #3b82f6' : (isSelected ? '2px solid #8b5cf6' : (isNested && !hasCustomColor ? '1px dotted #cbd5e1' : element.props.border || 'none')),
         borderRadius: element.props.borderRadius || '0px',
         display: 'flex',
         flexDirection: 'column',
