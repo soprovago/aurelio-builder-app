@@ -1,0 +1,27 @@
+/* Estilos para controlar hover en elementos canvas */
+
+/* Solo mostrar controles cuando el elemento tiene hover directo */
+.canvas-element:hover > div > .canvas-controls {
+  opacity: 1;
+}
+
+/* Ocultar controles del padre cuando un elemento hijo tiene hover */
+.canvas-element:hover .canvas-element:hover ~ * .canvas-controls,
+.canvas-element:has(.canvas-element:hover) > div > .canvas-controls {
+  opacity: 0;
+}
+
+/* Mostrar controles solo en el elemento más específico con hover */
+.canvas-element:hover:not(:has(.canvas-element:hover)) > div > .canvas-controls {
+  opacity: 1;
+}
+
+/* Overlay hover solo para el elemento más específico */
+.canvas-element:hover:not(:has(.canvas-element:hover)) > div > .canvas-overlay {
+  opacity: 0.1;
+}
+
+.canvas-overlay {
+  opacity: 0;
+  transition: opacity 200ms;
+}

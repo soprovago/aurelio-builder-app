@@ -7,6 +7,7 @@ import { getResponsiveProperty } from '../../shared/utils/responsiveUtils';
 import AurelioLogo from '../shared/AurelioLogo';
 import CanvasTemplateSystem from './components/CanvasTemplateSystem';
 import './slider-styles.css';
+import './canvas-hover.css';
 
 // Importar iconos necesarios
 import {
@@ -21,7 +22,6 @@ import {
   FiEdit3,
   FiTrash2,
   FiCopy,
-  FiMoreVertical,
   FiDroplet,
   FiSliders,
   FiPlus,
@@ -47,29 +47,12 @@ const CONTROL_STYLES = {
 // Componente CanvasElement (elemento individual en canvas)
 function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder, allElements }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAddButton, setShowAddButton] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverPosition, setDragOverPosition] = useState(null);
   const dragRef = useRef(null);
-  const menuRef = useRef(null);
   const dragTimeoutRef = useRef(null);
 
-  // Efecto para cerrar el menú al hacer clic fuera
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    if (isMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [isMenuOpen]);
 
   // Efecto de limpieza para timeout de drag
   useEffect(() => {
@@ -133,6 +116,12 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
             onClick={(e) => {
               e.stopPropagation();
               onSelect(child);
+            }}
+            onMouseEnter={(e) => {
+              e.stopPropagation();
+            }}
+            onMouseLeave={(e) => {
+              e.stopPropagation();
             }}
             className="cursor-pointer"
           >
@@ -301,9 +290,18 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         onDragOver={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragOver} // Solo no-contenedores
         onDragLeave={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragLeave}
         onDrop={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDrop}
-        onMouseEnter={() => setShowAddButton(true)}
-        onMouseLeave={() => setShowAddButton(false)}
-        className={`relative group ${
+        onMouseEnter={(e) => {
+          e.stopPropagation();
+          setShowAddButton(true);
+        }}
+        onMouseLeave={(e) => {
+          e.stopPropagation();
+          if (!e.currentTarget.contains(e.relatedTarget)) {
+            setShowAddButton(false);
+          }
+        }}
+        data-canvas-element={element.id}
+        className={`canvas-element relative group ${
           isSelected ? 'ring-2 ring-[#8b5cf6]' : ''
         } ${
           isDragging ? 'opacity-50 scale-95' : ''
@@ -323,7 +321,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
           {renderElement()}
           
           {/* Controles compactos agrupados */}
-          <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-auto">
+          <div className="canvas-controls absolute top-1 right-1 opacity-0 transition-all duration-200 pointer-events-auto z-[9999]">
             <div className={CONTROL_STYLES.controlsContainer}>
               <button
                 onClick={(e) => {
@@ -347,38 +345,11 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
                 <FiTrash2 className="w-3 h-3" />
               </button>
               
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsMenuOpen(!isMenuOpen);
-                }}
-                className={CONTROL_STYLES.menuButton}
-                title="Más opciones"
-              >
-                <FiMoreVertical className="w-3 h-3" />
-              </button>
             </div>
-            
-            {/* Menú desplegable compacto */}
-            {isMenuOpen && (
-              <div className="absolute top-full right-0 mt-1 bg-black/90 backdrop-blur-sm border border-gray-600 rounded-lg shadow-xl py-1 min-w-[120px] z-50">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Funcionalidades adicionales aquí
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full px-2 py-1 text-left text-xs text-gray-300 hover:text-white hover:bg-gray-700/50 flex items-center gap-2 transition-colors"
-                >
-                  <FiEdit3 className="w-3 h-3" />
-                  Editar
-                </button>
-              </div>
-            )}
           </div>
           
           {/* Overlay mejorado para indicar que es arrastrable */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br from-[#8b5cf6] to-[#ec4899] transition-all duration-200 pointer-events-none rounded-lg" />
+          <div className="canvas-overlay absolute inset-0 bg-gradient-to-br from-[#8b5cf6] to-[#ec4899] pointer-events-none rounded-lg" />
         </div>
         
         {/* Botón de añadir contenedor (solo para contenedores) */}
