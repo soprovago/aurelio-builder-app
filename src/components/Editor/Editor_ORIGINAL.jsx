@@ -63,6 +63,46 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     };
   }, []);
 
+  // Limpiar isDragOver cuando cambia la selección o se interactúa con otros elementos
+  useEffect(() => {
+    if (selectedElement?.id !== element.id && isDragOver) {
+      setIsDragOver(false);
+    }
+  }, [selectedElement, element.id, isDragOver]);
+
+  // Cleanup global para eventos que indican fin de drag
+  useEffect(() => {
+    const handleGlobalMouseMove = () => {
+      if (isDragOver && !isDragging) {
+        setIsDragOver(false);
+      }
+    };
+    
+    const handleGlobalClick = () => {
+      if (isDragOver) {
+        setIsDragOver(false);
+      }
+    };
+    
+    const handleGlobalDragEnd = () => {
+      if (isDragOver) {
+        setIsDragOver(false);
+      }
+    };
+    
+    if (isDragOver) {
+      document.addEventListener('click', handleGlobalClick);
+      document.addEventListener('dragend', handleGlobalDragEnd);
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      
+      return () => {
+        document.removeEventListener('click', handleGlobalClick);
+        document.removeEventListener('dragend', handleGlobalDragEnd);
+        document.removeEventListener('mousemove', handleGlobalMouseMove);
+      };
+    }
+  }, [isDragOver, isDragging]);
+
 
   const renderElement = () => {
     if (element.type === ELEMENT_TYPES.CONTAINER) {
@@ -71,14 +111,12 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         e.stopPropagation();
         e.dataTransfer.dropEffect = 'copy';
         setIsDragOver(true);
-        if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
-        dragTimeoutRef.current = setTimeout(() => setIsDragOver(false), 2000);
         return false;
       };
 
       const handleContainerDragLeave = (e) => {
+        // Limpiar estado cuando salimos del contenedor
         if (!e.currentTarget.contains(e.relatedTarget)) {
-          if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
           setIsDragOver(false);
         }
       };
@@ -86,8 +124,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
       const handleContainerDrop = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
-        setTimeout(() => setIsDragOver(false), 100);
+        setIsDragOver(false);
         
         try {
           const data = JSON.parse(e.dataTransfer.getData('text/plain'));
@@ -207,6 +244,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
   const handleDragEnd = () => {
     setIsDragging(false);
     setDragOverPosition(null);
+    setIsDragOver(false); // Limpiar estado de dragOver
   };
 
   const handleDragOver = (e) => {
