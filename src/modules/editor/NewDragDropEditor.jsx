@@ -282,7 +282,7 @@ const PropertiesPanel = ({ selectedElement, onUpdate, onDelete }) => {
 };
 
 // Componente principal del Editor
-const NewDragDropEditor = () => {
+const NewDragDropEditor = ({ selectedTemplate, onExit }) => {
   const navigate = useNavigate();
   const [elements, setElements] = useState([]);
   const [selectedElementId, setSelectedElementId] = useState(null);
@@ -409,7 +409,7 @@ const NewDragDropEditor = () => {
       <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => onExit ? onExit() : navigate('/dashboard')}
             className="flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-md"
           >
             <span>←</span>

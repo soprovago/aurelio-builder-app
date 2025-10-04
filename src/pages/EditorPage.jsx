@@ -1,29 +1,8 @@
-import { useAuth } from "../context/AuthContext";
-import { AurelioBuilderProvider } from "../context/AurelioBuilderContext";
-// import { Builder } from '../features/builder';
-import Editor from '../components/Editor';
-import { useNavigate } from "react-router-dom";
+import Editor from '../components/Editor/Editor_ORIGINAL';
 
 function EditorPage() {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleExit = async () => {
-    try {
-      await logout();
-      navigate("/login");
-    } catch (error) {
-      console.error("Error during logout:", error);
-      // Si hay error en logout, al menos redirigir a login
-      navigate("/login");
-    }
-  };
-
-  return (
-    <AurelioBuilderProvider>
-      <Editor onExit={handleExit} />
-    </AurelioBuilderProvider>
-  );
+  // Editor original con drag & drop nativo HTML5
+  return <Editor />;
 }
 
 export default EditorPage;

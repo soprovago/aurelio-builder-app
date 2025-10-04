@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiLogOut } from 'react-icons/fi';
 import Dashboard from '../components/Dashboard';
-import Editor from '../components/Editor';
+import Editor from '../components/Editor/Editor_ORIGINAL';
 import { useAuth } from '../context/AuthContext';
 
 function DashboardPage() {
