@@ -33,7 +33,9 @@ import {
   FiPlus,
   FiInbox,
   FiPackage,
-  FiTarget
+  FiTarget,
+  FiSettings,
+  FiUpload
 } from 'react-icons/fi';
 
 // Elementos disponibles (con estilos del original)
@@ -158,29 +160,203 @@ function DraggableElement({ element, index }) {
   );
 }
 
-// Panel de elementos con estilos originales
-function ElementsPanel({ onAddElement }) {
+// Componente SectionsPanel mejorado sin emojis
+function SectionsPanel() {
+  const [showStructures, setShowStructures] = useState(false);
+
+  const containerStructures = [
+    {
+      id: 'single',
+      name: '1 Columna',
+      description: 'Contenedor único centrado',
+      icon: <div className="w-8 h-6 bg-[#8b5cf6] rounded border-2 border-[#7c3aed]" />,
+      layout: 'single'
+    },
+    {
+      id: 'double',
+      name: '2 Columnas', 
+      description: 'Dos contenedores lado a lado',
+      icon: (
+        <div className="flex gap-1">
+          <div className="w-3.5 h-6 bg-[#8b5cf6] rounded border border-[#7c3aed]" />
+          <div className="w-3.5 h-6 bg-[#8b5cf6] rounded border border-[#7c3aed]" />
+        </div>
+      ),
+      layout: 'double'
+    },
+    {
+      id: 'triple',
+      name: '3 Columnas',
+      description: 'Tres contenedores lado a lado', 
+      icon: (
+        <div className="flex gap-0.5">
+          <div className="w-2.5 h-6 bg-[#8b5cf6] rounded border border-[#7c3aed]" />
+          <div className="w-2.5 h-6 bg-[#8b5cf6] rounded border border-[#7c3aed]" />
+          <div className="w-2.5 h-6 bg-[#8b5cf6] rounded border border-[#7c3aed]" />
+        </div>
+      ),
+      layout: 'triple'
+    }
+  ];
+
+  const handleStructureClick = (structureType) => {
+    console.log('Adding section:', structureType);
+    // Aquí iría la lógica para crear la estructura
+    // Por ahora solo log
+  };
+
   return (
-    <div className="w-64 bg-[#1a1a1a] border-r border-[#2a2a2a] p-4 flex flex-col">
-      <h3 className="text-white font-semibold mb-4">Elementos</h3>
-      <div className="text-xs text-gray-400 mb-3">
-        Arrastra para agregar al canvas
+    <div className="px-4 pb-4">
+      <div className="text-xs text-gray-400 mb-4">
+        Arrastra secciones prediseñadas
+      </div>
+
+      {/* Estructuras rápidas */}
+      <div className="mb-6">
+        <h4 className="text-sm font-medium text-white mb-3">Estructuras</h4>
+        <div className="space-y-2">
+          {containerStructures.map((structure) => (
+            <button
+              key={structure.id}
+              onClick={() => handleStructureClick(structure.layout)}
+              className="w-full p-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] rounded-lg transition-colors group text-left"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  {structure.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-white group-hover:text-[#a78bfa]">
+                    {structure.name}
+                  </div>
+                  <div className="text-xs text-gray-400 truncate">
+                    {structure.description}
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Plantillas prediseñadas */}
+      <div>
+        <h4 className="text-sm font-medium text-white mb-3">Plantillas</h4>
+        <div className="grid grid-cols-1 gap-2">
+          <button className="p-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] rounded-lg transition-colors group text-left">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-white group-hover:text-blue-400">
+                  Hero Section
+                </div>
+                <div className="text-xs text-gray-400">
+                  Título + subtítulo + botón
+                </div>
+              </div>
+            </div>
+          </button>
+          
+          <button className="p-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] rounded-lg transition-colors group text-left">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-6 bg-gradient-to-r from-green-500 to-teal-500 rounded" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-white group-hover:text-green-400">
+                  Features
+                </div>
+                <div className="text-xs text-gray-400">
+                  3 columnas con iconos
+                </div>
+              </div>
+            </div>
+          </button>
+          
+          <button className="p-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] rounded-lg transition-colors group text-left">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-6 bg-gradient-to-r from-orange-500 to-red-500 rounded" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-white group-hover:text-orange-400">
+                  Contact
+                </div>
+                <div className="text-xs text-gray-400">
+                  Formulario de contacto
+                </div>
+              </div>
+            </div>
+          </button>
+        </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-3 flex-1">
-        {availableElements.map((element, index) => (
-          <DraggableElement 
-            key={element.id} 
-            element={element} 
-            index={index}
-          />
-        ))}
-      </div>
-      
-      {/* Sistema de Plantillas */}
+      {/* Sección de importación */}
       <div className="mt-6 pt-4 border-t border-[#2a2a2a]">
-        <h3 className="text-white font-semibold mb-3">Plantillas</h3>
-        <CanvasTemplateSystem />
+        <h4 className="text-sm font-medium text-white mb-3">Importar</h4>
+        <button className="w-full p-3 bg-[#2a2a2a] hover:bg-[#3a3a3a] rounded-lg transition-colors group border border-dashed border-[#3a3a3a] hover:border-[#8b5cf6]">
+          <div className="flex items-center justify-center space-x-2">
+            <FiUpload className="w-4 h-4 text-gray-400 group-hover:text-[#8b5cf6]" />
+            <span className="text-sm text-gray-400 group-hover:text-white">
+              Subir JSON
+            </span>
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Panel de elementos mejorado con pestañas
+function ElementsPanel({ onAddElement }) {
+  const [activeTab, setActiveTab] = useState('elements');
+
+  return (
+    <div className="w-64 bg-[#1a1a1a] border-r border-[#2a2a2a] flex flex-col">
+      {/* Header con pestañas */}
+      <div className="p-4 pb-0">
+        <div className="flex bg-[#2a2a2a] rounded-lg p-1 mb-4">
+          <button
+            onClick={() => setActiveTab('elements')}
+            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'elements'
+                ? 'bg-[#8b5cf6] text-white shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
+            }`}
+          >
+            Elementos
+          </button>
+          <button
+            onClick={() => setActiveTab('sections')}
+            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'sections'
+                ? 'bg-[#8b5cf6] text-white shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
+            }`}
+          >
+            Secciones
+          </button>
+        </div>
+      </div>
+
+      {/* Contenido de pestañas */}
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === 'elements' && (
+          <div className="px-4 pb-4">
+            <div className="text-xs text-gray-400 mb-3">
+              Arrastra para agregar al canvas
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {availableElements.map((element, index) => (
+                <DraggableElement 
+                  key={element.id} 
+                  element={element} 
+                  index={index}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'sections' && (
+          <SectionsPanel />
+        )}
       </div>
     </div>
   );
@@ -586,7 +762,7 @@ function PropertiesPanel({ selectedElement, onUpdate, onDelete }) {
 }
 
 // Toolbar superior con estilos originales
-function EditorToolbar({ onSave, onPreview, onExit }) {
+function EditorToolbar({ onSave, onPreview, onExit, showDebug, onToggleDebug }) {
   return (
     <div className="h-16 bg-[#1a1a1a] border-b border-[#2a2a2a] flex items-center justify-between px-6">
       <div className="flex items-center space-x-4">
@@ -622,6 +798,18 @@ function EditorToolbar({ onSave, onPreview, onExit }) {
         </div>
 
         <button
+          onClick={onToggleDebug}
+          className={`p-3 rounded-lg transition-colors ${
+            showDebug 
+              ? 'bg-[#8b5cf6] text-white hover:bg-[#7c3aed]' 
+              : 'bg-[#2a2a2a] text-gray-300 hover:text-white hover:bg-[#3a3a3a]'
+          }`}
+          title="Debug de Colisiones"
+        >
+          <FiSettings className="w-4 h-4" />
+        </button>
+
+        <button
           onClick={onPreview}
           className="flex items-center space-x-2 px-4 py-2 bg-[#2a2a2a] text-gray-300 hover:text-white hover:bg-[#3a3a3a] rounded-lg transition-colors"
         >
@@ -648,6 +836,7 @@ function EditorHybrid({ selectedTemplate, onExit }) {
   const [selectedElementId, setSelectedElementId] = useState(null);
   const [nextId, setNextId] = useState(1);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [showDebug, setShowDebug] = useState(false);
 
   // Configurar sensores de dnd-kit
   const sensors = useSensors(
@@ -862,6 +1051,8 @@ function EditorHybrid({ selectedTemplate, onExit }) {
         onSave={handleSave}
         onPreview={handlePreview}
         onExit={handleExit}
+        showDebug={showDebug}
+        onToggleDebug={() => setShowDebug(!showDebug)}
       />
 
       <div className="flex-1 flex overflow-hidden">

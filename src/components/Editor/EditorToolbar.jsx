@@ -4,7 +4,8 @@ import {
   FiSave,
   FiEye,
   FiGlobe,
-  FiEdit3
+  FiEdit3,
+  FiSettings
 } from 'react-icons/fi';
 import AurelioLogo from '../shared/AurelioLogo';
 import ViewportSelector from './ViewportSelector';
@@ -20,7 +21,10 @@ function EditorToolbar({
   onExit, 
   onSave, 
   onPreview, 
-  onPublish 
+  onPublish,
+  onToggleDebug,
+  isDebugActive,
+  isDragging 
 }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
@@ -93,6 +97,20 @@ function EditorToolbar({
             title="Volver al dashboard"
           >
             <FiArrowLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onToggleDebug}
+            className={`flex items-center justify-center w-8 h-8 transition-colors ${
+              isDragging 
+                ? (isDebugActive ? 'text-purple-300 hover:text-purple-200' : 'text-purple-400 hover:text-purple-300')
+                : 'text-gray-500 hover:text-gray-400'
+            }`}
+            title={isDragging 
+              ? (isDebugActive ? "Cerrar debug de colisiones" : "Debug de colisiones")
+              : "Debug de colisiones (arrastra un elemento)"
+            }
+          >
+            <FiSettings className="w-4 h-4" />
           </button>
           <button
             onClick={handleSave}

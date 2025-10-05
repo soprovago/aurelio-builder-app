@@ -105,9 +105,11 @@ export const ContainerElement = ({
         border: isDragOver ? '3px solid #3b82f6' : (isSelected ? '2px solid #8b5cf6' : (shouldShowDefaultStyling ? '1px dotted #cbd5e1' : element.props.border || 'none')),
         borderRadius: element.props.borderRadius || '0px',
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: hasChildren ? 'stretch' : 'center',
-        justifyContent: hasChildren ? 'flex-start' : 'center',
+        flexDirection: element.props.flexDirection || 'column',
+        alignItems: element.props.alignItems || (hasChildren ? 'stretch' : 'center'),
+        justifyContent: element.props.justifyContent || (hasChildren ? 'flex-start' : 'center'),
+        flexWrap: element.props.flexWrap || 'nowrap',
+        gap: element.props.gap || '16px',
         cursor: isDragOver ? 'copy' : 'default',
         position: 'relative',
         // Mejorar área de detección durante drag
@@ -131,7 +133,23 @@ export const ContainerElement = ({
       
       {/* Contenido del contenedor */}
       {hasChildren ? (
-        <div className="w-full space-y-2">
+        <div 
+          className={`w-full ${
+            (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') 
+              ? 'horizontal-container' 
+              : 'vertical-container'
+          }`}
+          data-child-count={element.props.children?.length || 0}
+          style={{
+            display: 'flex',
+            flexDirection: element.props.flexDirection || 'column',
+            alignItems: element.props.alignItems || 'stretch',
+            justifyContent: element.props.justifyContent || 'flex-start',
+            flexWrap: element.props.flexWrap || 'nowrap',
+            gap: element.props.gap || '16px',
+            minHeight: (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') ? '150px' : 'auto'
+          }}
+        >
           {children}
         </div>
       ) : (

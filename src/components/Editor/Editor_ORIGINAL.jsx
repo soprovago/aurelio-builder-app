@@ -8,6 +8,7 @@ import AurelioLogo from '../shared/AurelioLogo';
 import CanvasTemplateSystem from './components/CanvasTemplateSystem';
 import './slider-styles.css';
 import './canvas-hover.css';
+import './enhanced-drag-animations.css';
 
 // Importar iconos necesarios
 import {
@@ -34,6 +35,12 @@ import ViewportSelector from './components/ViewportSelector';
 import PropertiesPanel from './components/PropertiesPanel';
 import Canvas from './components/Canvas';
 import { renderBasicElement, ContainerElement } from './utils/elementRenderer';
+import { useCollisionDetection } from './hooks/useCollisionDetection';
+import CollisionDebugger from './components/CollisionDebugger';
+import ContainerReorderControls from './components/ContainerReorderControls';
+import ContainerVisualIndicators from './components/ContainerVisualIndicators';
+import QuickLayoutControls from './components/QuickLayoutControls';
+import { FlexibleChildWrapper } from './components/FlexibleChildWrapper';
 
 // Constantes de estilo
 const CONTROL_STYLES = {
@@ -57,7 +64,7 @@ const isElementChild = (parentElement, childId, allElements) => {
 };
 
 // Componente CanvasElement (elemento individual en canvas)
-function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder, allElements, isNested = false, parentId = null }) {
+function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder, allElements, isNested = false, parentId = null, parentElement = null, totalElementsInContainer = 0, onReorderInContainer, onMoveOutOfContainer, collisionDetection, setActiveDrag }) {
   const [isDragging, setIsDragging] = useState(false);
   const [showAddButton, setShowAddButton] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -78,6 +85,22 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
       }
     };
   }, []);
+  
+  // Registrar elemento para collision detection
+  useEffect(() => {
+    if (dragRef.current && collisionDetection) {
+      collisionDetection.registerDroppable(element.id, dragRef.current, {
+        type: element.type,
+        isContainer: element.type === ELEMENT_TYPES.CONTAINER,
+        parentId: parentId,
+        element: element
+      });
+      
+      return () => {
+        collisionDetection.unregisterDroppable(element.id);
+      };
+    }
+  }, [element.id, element.type, parentId, collisionDetection]);
 
   // Limpiar isDragOver cuando cambia la selección o se interactúa con otros elementos
   useEffect(() => {
@@ -184,40 +207,54 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
 
       const containerChildren = element.props.children && element.props.children.length > 0 ? (
         element.props.children.map((child, childIndex) => (
-          <div 
+          <FlexibleChildWrapper
             key={child.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect(child);
-            }}
-            onMouseEnter={(e) => {
-              e.stopPropagation();
-            }}
-            onMouseLeave={(e) => {
-              e.stopPropagation();
-            }}
+            parentElement={element}
+            childElement={child}
+            childIndex={childIndex}
+            totalChildren={element.props.children.length}
             className="cursor-pointer"
           >
-            <CanvasElement
-              element={child}
-              index={childIndex}
-              isSelected={selectedElement?.id === child.id}
-              onSelect={onSelect}
-              onDelete={onDelete}
-              onDuplicate={onDuplicate}
-              onAddToContainer={onAddToContainer}
-              onMoveToContainer={onMoveToContainer}
-              selectedElement={selectedElement}
-              viewportMode={viewportMode}
-              onUpdateElement={onUpdateElement}
-              onAddElementAtIndex={onAddElementAtIndex}
-              onReorder={onReorder}
-              onAddElement={onAddElement}
-              allElements={allElements}
-              isNested={true}
-              parentId={element.id}
-            />
-          </div>
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(child);
+              }}
+              onMouseEnter={(e) => {
+                e.stopPropagation();
+              }}
+              onMouseLeave={(e) => {
+                e.stopPropagation();
+              }}
+              className="h-full w-full"
+            >
+              <CanvasElement
+                element={child}
+                index={childIndex}
+                isSelected={selectedElement?.id === child.id}
+                onSelect={onSelect}
+                onDelete={onDelete}
+                onDuplicate={onDuplicate}
+                onAddToContainer={onAddToContainer}
+                onMoveToContainer={onMoveToContainer}
+                selectedElement={selectedElement}
+                viewportMode={viewportMode}
+                onUpdateElement={onUpdateElement}
+                onAddElementAtIndex={onAddElementAtIndex}
+                onReorder={onReorder}
+                onAddElement={onAddElement}
+                allElements={allElements}
+                isNested={true}
+                parentId={element.id}
+                parentElement={element}
+                totalElementsInContainer={element.props.children?.length || 0}
+                onReorderInContainer={onReorderInContainer}
+                onMoveOutOfContainer={onMoveOutOfContainer}
+                collisionDetection={collisionDetection}
+                setActiveDrag={setActiveDrag}
+              />
+            </div>
+          </FlexibleChildWrapper>
         ))
       ) : null;
 
@@ -264,6 +301,17 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
     
+    // Actualizar estado de drag activo para debugging
+    if (dragRef.current) {
+      const rect = dragRef.current.getBoundingClientRect();
+      setActiveDrag?.({
+        isDragging: true,
+        element: element,
+        rect: rect,
+        data: dragData
+      });
+    }
+    
     // No crear imagen personalizada para contenedores ya que puede interferir
     if (element.type !== ELEMENT_TYPES.CONTAINER) {
       // Crear imagen personalizada de arrastre solo para elementos no-contenedores
@@ -288,6 +336,9 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     setIsDragging(false);
     setDragOverPosition(null);
     setIsDragOver(false); // Limpiar estado de dragOver
+    
+    // Limpiar estado de drag activo
+    setActiveDrag?.({ isDragging: false });
   };
 
   const handleDragOver = (e) => {
@@ -444,13 +495,40 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               >
                 <FiTrash2 className="w-3 h-3" />
               </button>
-              
             </div>
           </div>
+          
+          {/* Controles de reordenamiento para elementos dentro de contenedores */}
+          {isNested && parentElement && onReorderInContainer && (
+            <div className="canvas-reorder-controls absolute top-1 left-1 opacity-0 transition-all duration-200 pointer-events-auto z-[9999]">
+              <ContainerReorderControls
+                element={element}
+                parentElement={parentElement}
+                index={index}
+                totalElements={totalElementsInContainer}
+                onReorderInContainer={onReorderInContainer}
+                onMoveOutOfContainer={onMoveOutOfContainer}
+                className="scale-90"
+              />
+            </div>
+          )}
           
           {/* Overlay mejorado para indicar que es arrastrable */}
           <div className="canvas-overlay absolute inset-0 bg-gradient-to-br from-[#8b5cf6] to-[#ec4899] pointer-events-none rounded-lg" />
         </div>
+        
+        {/* Indicadores visuales para contenedores */}
+        <ContainerVisualIndicators 
+          element={element}
+          isSelected={isSelected}
+        />
+        
+        {/* Controles rápidos de layout para contenedores */}
+        <QuickLayoutControls
+          selectedElement={isSelected ? element : null}
+          onUpdateElement={onUpdateElement}
+          position="floating"
+        />
         
         {/* Botón de añadir contenedor (solo para contenedores) */}
         {element.type === ELEMENT_TYPES.CONTAINER && showAddButton && (
@@ -488,6 +566,17 @@ function Editor({ onExit }) {
   // Estado local del editor (igual que WEMax)
   const [elements, setElements] = useState([]);
   const [selectedElement, setSelectedElement] = useState(null);
+  
+  // Estado para drag activo (para collision debugging)
+  const [activeDrag, setActiveDrag] = useState(null);
+  
+  // Sistema de collision detection mejorado
+  const collisionDetection = useCollisionDetection({
+    algorithm: 'smart',
+    minimumIntersectionRatio: 0.2,
+    preferIntersection: true,
+    fallbackToCenter: true
+  });
 
   // Función para generar IDs únicos
   const generateId = () => {
@@ -759,6 +848,57 @@ function Editor({ onExit }) {
     });
   }, []);
 
+  // Función para reordenar elementos dentro de contenedores
+  const reorderInContainer = useCallback((elementId, currentIndex, newIndex) => {
+    console.log('Reordering in container:', elementId, currentIndex, '->', newIndex);
+    
+    setElements(prev => {
+      // Función recursiva para encontrar el contenedor padre y reordenar
+      const reorderInNestedContainer = (elements) => {
+        return elements.map(element => {
+          if (element.props?.children) {
+            const childIndex = element.props.children.findIndex(child => child.id === elementId);
+            
+            if (childIndex !== -1) {
+              // Encontramos el contenedor con el elemento
+              const newChildren = [...element.props.children];
+              const [movedElement] = newChildren.splice(currentIndex, 1);
+              newChildren.splice(newIndex, 0, movedElement);
+              
+              return {
+                ...element,
+                props: {
+                  ...element.props,
+                  children: newChildren
+                }
+              };
+            } else {
+              // Seguir buscando en contenedores anidados
+              return {
+                ...element,
+                props: {
+                  ...element.props,
+                  children: reorderInNestedContainer(element.props.children)
+                }
+              };
+            }
+          }
+          return element;
+        });
+      };
+      
+      return reorderInNestedContainer(prev);
+    });
+  }, []);
+
+  // Función para mover elemento fuera de contenedor
+  const moveOutOfContainer = useCallback((elementId, parentId) => {
+    console.log('Moving element out of container:', elementId, 'from parent:', parentId);
+    
+    // Usar la función de mover a contenedor existente, pero con containerId = null (canvas principal)
+    moveToContainer(elementId, null);
+  }, [moveToContainer]);
+
   const handleAddElement = useCallback((elementTemplate) => {
     addElement(elementTemplate);
   }, [addElement]);
@@ -897,7 +1037,11 @@ function Editor({ onExit }) {
             onUpdateElement={updateElement}
             onAddElementAtIndex={addElementAtIndex}
             onReorder={reorderElements}
+            onReorderInContainer={reorderInContainer}
+            onMoveOutOfContainer={moveOutOfContainer}
             CanvasElement={CanvasElement}
+            collisionDetection={collisionDetection}
+            setActiveDrag={setActiveDrag}
           />
         </div>
 
@@ -907,8 +1051,15 @@ function Editor({ onExit }) {
           onUpdateElement={updateElement}
         />
       </div>
+      
+      {/* Collision Detection Debugger */}
+      <CollisionDebugger
+        collisionDetection={collisionDetection}
+        isDragging={activeDrag?.isDragging || false}
+        activeRect={activeDrag?.rect}
+        activeElement={activeDrag?.element}
+      />
     </div>
   );
 }
-
 export default Editor;

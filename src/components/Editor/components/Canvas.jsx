@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { VIEWPORT_MODES, VIEWPORT_CONFIGS } from '../../../constants/viewportConfigs';
 import { FiPlus, FiGrid } from 'react-icons/fi';
 import CanvasTemplateSystem from './CanvasTemplateSystem';
+import { useAutoScroll } from '../hooks/useAutoScroll';
+import { VisualGrid, GridToggle } from './VisualGrid';
+import { CanvasDropZone, InsertionIndicator } from './EnhancedDropZones';
+import EasyLayoutMode from './EasyLayoutMode';
 // CanvasElement se importará desde el Editor principal
 
 // Componente Canvas principal
-function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onDeleteElement, onDuplicateElement, onAddToContainer, onMoveToContainer, onUpdateElement, onAddElementAtIndex, onReorder, CanvasElement }) {
+function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onDeleteElement, onDuplicateElement, onAddToContainer, onMoveToContainer, onUpdateElement, onAddElementAtIndex, onReorder, onReorderInContainer, onMoveOutOfContainer, CanvasElement, collisionDetection, setActiveDrag }) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
+  const [easyLayoutMode, setEasyLayoutMode] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
+  
+  // Auto-scroll durante drag
+  const canvasScrollContainerRef = useRef(null);
+  const { handleDragMove, stopAutoScroll, isScrolling } = useAutoScroll(canvasScrollContainerRef);
+  const [showAutoScrollIndicator, setShowAutoScrollIndicator] = useState(false);
   
   // Handlers de plantillas
   const handleAddContainerStructure = (structure) => {
@@ -38,11 +50,13 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
     e.stopPropagation();
     e.dataTransfer.dropEffect = 'copy';
     setIsDragOver(true);
+    setIsDragging(true);
   };
 
   const handleDragLeave = (e) => {
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setIsDragOver(false);
+      setIsDragging(false);
     }
   };
 
@@ -50,6 +64,7 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
+    setIsDragging(false);
     
     try {
       const data = JSON.parse(e.dataTransfer.getData('text/plain'));
@@ -65,11 +80,73 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
     }
   };
 
+  const handleEasyLayoutCreate = (preset) => {
+    // Crear contenedor basado en el preset seleccionado
+    const newElement = {
+      id: `${preset.layout.type}-${Date.now()}`,
+      type: preset.layout.type,
+      props: { ...preset.layout.props, children: [] }
+    };
+    onAddElement(newElement);
+    setEasyLayoutMode(false);
+  };
+
   return (
-    <div className="w-full h-full bg-gray-100">
-      <div className="w-full h-full overflow-auto">
+    <div className="w-full h-full bg-gray-100 relative">
+      {/* Controles de herramientas */}
+      <div className="absolute top-4 left-4 z-50 flex items-center gap-3">
+        <GridToggle 
+          showGrid={showGrid}
+          onToggle={() => setShowGrid(!showGrid)}
+          isDragging={isDragging}
+        />
+        <EasyLayoutMode
+          isActive={easyLayoutMode}
+          onToggle={() => setEasyLayoutMode(!easyLayoutMode)}
+          onCreateLayout={handleEasyLayoutCreate}
+        />
+      </div>
+      
+      {/* Indicador de auto-scroll */}
+      {showAutoScrollIndicator && (
+        <div className="absolute top-4 right-4 z-50">
+          <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg animate-pulse">
+            Auto-scroll activo
+          </div>
+        </div>
+      )}
+      
+      <div 
+        ref={canvasScrollContainerRef}
+        className="canvas-grid-container w-full h-full overflow-auto relative"
+        onMouseMove={(e) => {
+          handleDragMove(e);
+          // Mostrar indicador cuando hay scroll activo
+          const wasScrolling = isScrolling();
+          if (wasScrolling !== showAutoScrollIndicator) {
+            setShowAutoScrollIndicator(wasScrolling);
+          }
+        }}
+        onMouseLeave={() => {
+          stopAutoScroll();
+          setShowAutoScrollIndicator(false);
+          setIsDragging(false);
+        }}
+      >
+        {/* Grilla visual */}
+        <VisualGrid 
+          isDragging={isDragging}
+          showGrid={showGrid}
+          onToggleGrid={() => setShowGrid(!showGrid)}
+        />
         <div className="w-full flex justify-center p-4">
-          <div
+          <CanvasDropZone
+            isActive={isDragOver}
+            isEmpty={elements.length === 0}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            className={viewportMode === VIEWPORT_MODES.DESKTOP ? 'w-full' : 'rounded-lg shadow-lg border border-gray-200'}
             style={{
               width: viewportConfig.width,
               maxWidth: viewportConfig.maxWidth,
@@ -77,101 +154,51 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
               padding: viewportConfig.padding,
               boxSizing: 'border-box',
             }}
-            className={`bg-white transition-colors ${
-              isDragOver ? 'bg-blue-50 ring-2 ring-blue-300' : ''
-            } ${viewportMode === VIEWPORT_MODES.DESKTOP ? 'w-full' : 'rounded-lg shadow-lg border border-gray-200'}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
           >
-            {elements.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[500px]">
-                <div className={`text-center transition-all duration-300 ${
-                  isDragOver 
-                    ? 'transform scale-105 text-blue-600' 
-                    : 'text-gray-500'
-                }`}>
-                  <div className={`w-20 h-20 mx-auto rounded-full border-2 border-dashed flex items-center justify-center transition-all duration-300 mb-6 ${
-                    isDragOver 
-                      ? 'border-blue-400 bg-blue-50 shadow-lg' 
-                      : 'border-gray-300 bg-gray-50'
-                  }`}>
-                    {isDragOver ? (
-                      <FiPlus className="w-8 h-8 text-blue-500" />
-                    ) : (
-                      <FiGrid className="w-8 h-8 text-gray-400" />
-                    )}
-                  </div>
-                  
-                  <h2 className="text-2xl font-bold mb-3 text-gray-700">
-                    {isDragOver ? '¡Perfecto! Suelta aquí' : 'Comienza tu diseño'}
-                  </h2>
-                  
-                  <p className="text-base mb-8 max-w-md mx-auto leading-relaxed">
-                    {isDragOver 
-                      ? 'Tu elemento será agregado al lienzo' 
-                      : 'Arrastra elementos desde el panel lateral o elige una plantilla'}
-                  </p>
-                </div>
-                
-                <CanvasTemplateSystem
-                  onAddContainerStructure={handleAddContainerStructure}
-                  onLoadTemplate={handleLoadTemplate}
-                  onUploadTemplate={handleUploadTemplate}
-                />
-              </div>
-            ) : (
+            {/* El CanvasDropZone ya maneja el estado vacío, solo agregamos contenido cuando hay elementos */}
+            {elements.length > 0 && (
               <>
                 {/* Elementos del canvas */}
-                <div 
-                  className="space-y-2 mb-8"
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                {elements.map((element, index) => (
-                  <CanvasElement
-                    key={element.id}
-                    element={element}
-                    index={index}
-                    isSelected={selectedElement?.id === element.id}
-                    onSelect={onSelectElement}
-                    onDelete={onDeleteElement}
-                    onDuplicate={onDuplicateElement}
-                    onAddToContainer={onAddToContainer}
-                    onMoveToContainer={onMoveToContainer}
-                    selectedElement={selectedElement}
-                    viewportMode={viewportMode}
-                    onUpdateElement={onUpdateElement}
-                    onAddElementAtIndex={onAddElementAtIndex}
-                    onReorder={onReorder}
-                    onAddElement={onAddElement}
-                    allElements={elements}
-                  />
-                ))}
-                </div>
-                
-                {/* Área de drop para elementos desde contenedores */}
-                <div 
-                  className={`min-h-[60px] border-2 border-dashed rounded-lg transition-all duration-200 mb-6 flex items-center justify-center ${
-                    isDragOver 
-                      ? 'border-blue-400 bg-blue-50 text-blue-600' 
-                      : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-gray-300'
-                  }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <div className="text-center py-4">
-                    <div className="text-sm font-medium mb-1">
-                      {isDragOver ? '¡Suelta aquí!' : 'Zona de Drop'}
+                <div className="space-y-4 mb-8">
+                  {elements.map((element, index) => (
+                    <div key={element.id} className="relative">
+                      {/* Indicador de inserción superior */}
+                      <InsertionIndicator 
+                        isActive={isDragging && index === 0}
+                        orientation="horizontal"
+                        className="mb-2"
+                      />
+                      
+                      <CanvasElement
+                        element={element}
+                        index={index}
+                        isSelected={selectedElement?.id === element.id}
+                        onSelect={onSelectElement}
+                        onDelete={onDeleteElement}
+                        onDuplicate={onDuplicateElement}
+                        onAddToContainer={onAddToContainer}
+                        onMoveToContainer={onMoveToContainer}
+                        selectedElement={selectedElement}
+                        viewportMode={viewportMode}
+                        onUpdateElement={onUpdateElement}
+                        onAddElementAtIndex={onAddElementAtIndex}
+                        onReorder={onReorder}
+                        onAddElement={onAddElement}
+                        allElements={elements}
+                        onReorderInContainer={onReorderInContainer}
+                        onMoveOutOfContainer={onMoveOutOfContainer}
+                        collisionDetection={collisionDetection}
+                        setActiveDrag={setActiveDrag}
+                      />
+                      
+                      {/* Indicador de inserción inferior */}
+                      <InsertionIndicator 
+                        isActive={isDragging && index === elements.length - 1}
+                        orientation="horizontal"
+                        className="mt-2"
+                      />
                     </div>
-                    <div className="text-xs opacity-70">
-                      {isDragOver 
-                        ? 'El elemento se agregará al canvas' 
-                        : 'Arrastra elementos desde contenedores aquí'}
-                    </div>
-                  </div>
+                  ))}
                 </div>
                 
                 {/* Sistema de plantillas siempre visible */}
@@ -182,10 +209,9 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                     onUploadTemplate={handleUploadTemplate}
                   />
                 </div>
-                
               </>
             )}
-          </div>
+          </CanvasDropZone>
         </div>
       </div>
     </div>

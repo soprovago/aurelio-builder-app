@@ -25,3 +25,21 @@
   opacity: 0;
   transition: opacity 200ms;
 }
+
+/* Estilos para controles de reordenamiento */
+
+/* Solo mostrar controles de reordenamiento cuando el elemento tiene hover directo */
+.canvas-element:hover > div > .canvas-reorder-controls {
+  opacity: 1;
+}
+
+/* Ocultar controles de reordenamiento del padre cuando un elemento hijo tiene hover */
+.canvas-element:hover .canvas-element:hover ~ * .canvas-reorder-controls,
+.canvas-element:has(.canvas-element:hover) > div > .canvas-reorder-controls {
+  opacity: 0;
+}
+
+/* Mostrar controles de reordenamiento solo en el elemento más específico con hover */
+.canvas-element:hover:not(:has(.canvas-element:hover)) > div > .canvas-reorder-controls {
+  opacity: 1;
+}

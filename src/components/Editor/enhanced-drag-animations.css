@@ -1,0 +1,334 @@
+/* Animaciones mejoradas para el sistema de drag & drop */
+
+/* Delays para animaciones escalonadas */
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+
+/* Animación de ondas concéntricas */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 1s infinite;
+}
+
+/* Animación de partículas flotantes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 2s ease-in-out infinite;
+}
+
+/* Animación de glow pulsante */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Animación de shake suave */
+@keyframes gentle-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+.animate-gentle-shake {
+  animation: gentle-shake 0.5s ease-in-out;
+}
+
+/* Animación de scale-in */
+@keyframes scale-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+/* Animación de slide-up */
+@keyframes slide-up {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+/* Mejoras para grillas visuales */
+.grid-dot {
+  transition: all 0.2s ease;
+}
+
+.grid-dot:hover {
+  transform: scale(1.5);
+  background-color: rgba(139, 92, 246, 0.8);
+}
+
+/* Efectos de líneas de inserción */
+.insertion-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.insertion-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), transparent);
+  animation: sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Estilos para elementos durante drag */
+.element-being-dragged {
+  transform: rotate(2deg) scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Efectos de hover mejorados para controles */
+.control-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.control-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.control-button:active {
+  transform: translateY(0);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mejoras para el Easy Layout Mode */
+.preset-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.preset-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.preset-card:hover::before {
+  left: 100%;
+}
+
+/* Animaciones de entrada para paneles */
+.panel-enter {
+  animation: slide-up 0.5s ease-out;
+}
+
+.panel-exit {
+  animation: slide-down 0.3s ease-in;
+}
+
+@keyframes slide-down {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+}
+
+/* Estilos para indicadores de estado */
+.status-indicator {
+  position: relative;
+}
+
+.status-indicator::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+/* Mejoras para tooltips */
+.tooltip {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.tooltip:hover::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 1;
+  animation: tooltip-appear 0.2s ease;
+}
+
+@keyframes tooltip-appear {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Estilos para elementos hijos flexibles en contenedores */
+.flexible-child {
+  transition: all 0.3s ease;
+  min-height: 100px;
+}
+
+.flexible-child:hover {
+  z-index: 10;
+}
+
+/* Mejoras para contenedores horizontales */
+.horizontal-container {
+  min-height: 150px;
+}
+
+.horizontal-container .flexible-child {
+  min-width: 200px;
+  flex: 1 1 0%;
+}
+
+.horizontal-container .flexible-child:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Mejoras para contenedores verticales */
+.vertical-container .flexible-child {
+  width: 100%;
+  min-height: 80px;
+}
+
+/* Estilos específicos para diferente número de hijos */
+.horizontal-container[data-child-count="2"] .flexible-child {
+  min-width: 250px;
+  max-width: 50%;
+}
+
+.horizontal-container[data-child-count="3"] .flexible-child {
+  min-width: 200px;
+  max-width: 33.333%;
+}
+
+.horizontal-container[data-child-count="4"] .flexible-child {
+  min-width: 180px;
+  max-width: 25%;
+}
+
+/* Drop zones más prominentes para elementos pequeños */
+.flexible-child .container-drop-zone {
+  min-height: 120px;
+  border: 2px dashed transparent;
+  transition: all 0.2s ease;
+}
+
+.flexible-child .container-drop-zone:hover,
+.flexible-child .container-drop-zone.drag-over {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Mejoras para elementos muy pequeños */
+.flexible-child[data-total-children="4"] .container-drop-zone,
+.flexible-child[data-total-children="5"] .container-drop-zone,
+.flexible-child[data-total-children="6"] .container-drop-zone {
+  min-height: 140px;
+  border-width: 3px;
+}
+
+.flexible-child[data-total-children="4"] .container-drop-zone.drag-over,
+.flexible-child[data-total-children="5"] .container-drop-zone.drag-over,
+.flexible-child[data-total-children="6"] .container-drop-zone.drag-over {
+  background-color: rgba(59, 130, 246, 0.1);
+  box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.2);
+}

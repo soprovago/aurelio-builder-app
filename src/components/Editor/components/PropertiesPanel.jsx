@@ -36,6 +36,144 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
               Contenedor
             </h4>
             
+            {/* Layout Direction */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Dirección</label>
+              <select
+                value={selectedElement.props.flexDirection || 'column'}
+                onChange={(e) => handlePropertyChange('flexDirection', e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              >
+                <option value="column">Columna (vertical)</option>
+                <option value="row">Fila (horizontal)</option>
+                <option value="column-reverse">Columna reversa</option>
+                <option value="row-reverse">Fila reversa</option>
+              </select>
+            </div>
+            
+            {/* Justify Content */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Alineación Principal</label>
+              <select
+                value={selectedElement.props.justifyContent || 'flex-start'}
+                onChange={(e) => handlePropertyChange('justifyContent', e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              >
+                <option value="flex-start">Inicio</option>
+                <option value="center">Centro</option>
+                <option value="flex-end">Final</option>
+                <option value="space-between">Espacio entre</option>
+                <option value="space-around">Espacio alrededor</option>
+                <option value="space-evenly">Espacio uniforme</option>
+              </select>
+            </div>
+            
+            {/* Align Items */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Alineación Secundaria</label>
+              <select
+                value={selectedElement.props.alignItems || 'stretch'}
+                onChange={(e) => handlePropertyChange('alignItems', e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              >
+                <option value="stretch">Estirar</option>
+                <option value="flex-start">Inicio</option>
+                <option value="center">Centro</option>
+                <option value="flex-end">Final</option>
+                <option value="baseline">Línea base</option>
+              </select>
+            </div>
+            
+            {/* Flex Wrap */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Envoltura</label>
+              <select
+                value={selectedElement.props.flexWrap || 'nowrap'}
+                onChange={(e) => handlePropertyChange('flexWrap', e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              >
+                <option value="nowrap">Sin envoltura</option>
+                <option value="wrap">Con envoltura</option>
+                <option value="wrap-reverse">Envoltura reversa</option>
+              </select>
+            </div>
+            
+            {/* Gap */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Espaciado entre Elementos</label>
+              <input
+                type="text"
+                value={selectedElement.props.gap || '16px'}
+                onChange={(e) => handlePropertyChange('gap', e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+                placeholder="16px"
+              />
+            </div>
+            
+            {/* Configuración de columnas rápidas */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Layout Rápido</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    handlePropertyChange('flexDirection', 'column');
+                    handlePropertyChange('alignItems', 'stretch');
+                  }}
+                  className={`px-3 py-2 text-xs rounded transition-colors ${
+                    selectedElement.props.flexDirection === 'column' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-[#3a3a3a] text-gray-300 hover:bg-[#4a4a4a]'
+                  }`}
+                >
+                  Una Columna
+                </button>
+                <button
+                  onClick={() => {
+                    handlePropertyChange('flexDirection', 'row');
+                    handlePropertyChange('alignItems', 'stretch');
+                    handlePropertyChange('flexWrap', 'wrap');
+                  }}
+                  className={`px-3 py-2 text-xs rounded transition-colors ${
+                    selectedElement.props.flexDirection === 'row' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-[#3a3a3a] text-gray-300 hover:bg-[#4a4a4a]'
+                  }`}
+                >
+                  Múltiples
+                </button>
+              </div>
+              
+              {/* Presets de columnas */}
+              {selectedElement.props.flexDirection === 'row' && (
+                <div className="mt-2 grid grid-cols-3 gap-1">
+                  <button
+                    onClick={() => {
+                      handlePropertyChange('justifyContent', 'space-between');
+                    }}
+                    className="px-2 py-1 text-xs bg-[#3a3a3a] text-gray-300 hover:bg-purple-600 hover:text-white rounded transition-colors"
+                  >
+                    2 Col
+                  </button>
+                  <button
+                    onClick={() => {
+                      handlePropertyChange('justifyContent', 'space-around');
+                    }}
+                    className="px-2 py-1 text-xs bg-[#3a3a3a] text-gray-300 hover:bg-purple-600 hover:text-white rounded transition-colors"
+                  >
+                    3 Col
+                  </button>
+                  <button
+                    onClick={() => {
+                      handlePropertyChange('justifyContent', 'space-evenly');
+                    }}
+                    className="px-2 py-1 text-xs bg-[#3a3a3a] text-gray-300 hover:bg-purple-600 hover:text-white rounded transition-colors"
+                  >
+                    4 Col
+                  </button>
+                </div>
+              )}
+            </div>
+            
             {/* Padding */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-300 mb-2">Espaciado Interno</label>

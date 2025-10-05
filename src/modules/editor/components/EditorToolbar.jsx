@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEditorStore, useProjectsStore } from '@/store';
+import CollisionDebugger from '../../../components/Editor/components/CollisionDebugger';
 
 interface EditorToolbarProps {
   projectId?: string;
@@ -8,6 +9,7 @@ interface EditorToolbarProps {
 
 const EditorToolbar: React.FC<EditorToolbarProps> = ({ projectId }) => {
   const navigate = useNavigate();
+  const [isDebugVisible, setIsDebugVisible] = useState(false);
   
   // State del editor
   const {
@@ -193,6 +195,18 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ projectId }) => {
           >
             Snap
           </button>
+          
+          <button
+            onClick={() => setIsDebugVisible(!isDebugVisible)}
+            className={`p-2 text-sm rounded-md transition-colors ${
+              isDebugVisible
+                ? 'bg-purple-100 text-purple-700'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+            title="Debug de Colisiones"
+          >
+            ⚙️
+          </button>
         </div>
 
         {/* Acciones principales */}
@@ -222,6 +236,16 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ projectId }) => {
           </button>
         </div>
       </div>
+      
+      {/* Componente de Debug de Colisiones */}
+      <CollisionDebugger
+        isVisible={isDebugVisible}
+        // TODO: Pasar las props necesarias cuando se integre con el sistema de drag & drop
+        collisionDetection={null}
+        isDragging={false}
+        activeRect={null}
+        activeElement={null}
+      />
     </div>
   );
 };
