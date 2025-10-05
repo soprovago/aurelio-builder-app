@@ -95,10 +95,14 @@ const availableElements = [
     name: 'Imagen',
     icon: <FiImage className="w-5 h-5" />,
     defaultProps: {
-      src: '/api/placeholder/400/300',
-      alt: 'Imagen',
-      width: '100%',
-      height: 'auto',
+      src: '/images/general-img-landscape.png',
+      alt: 'Imagen placeholder',
+      width: '400px',
+      height: '300px',
+      maxWidth: '100%',
+      objectFit: 'cover',
+      objectPosition: 'center',
+      responsive: true
     }
   },
   {
@@ -309,28 +313,30 @@ function ElementsPanel({ onAddElement }) {
 
   return (
     <div className="w-64 bg-[#1a1a1a] border-r border-[#2a2a2a] flex flex-col">
-      {/* Header con pestañas */}
-      <div className="p-4 pb-0">
-        <div className="flex bg-[#2a2a2a] rounded-lg p-1 mb-4">
-          <button
+      {/* Header con pestañas - Estilo unificado */}
+      <div className="border-b border-[#2a2a2a] bg-[#1a1a1a]">
+        <div className="flex w-full">
+          <button 
             onClick={() => setActiveTab('elements')}
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'elements'
-                ? 'bg-[#8b5cf6] text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
+            className={`flex-1 py-3 text-xs font-medium transition-colors ${
+              activeTab === 'elements' 
+                ? 'text-white bg-[#2a2a2a] border-b-2 border-purple-500' 
+                : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
             }`}
           >
-            Elementos
+            <FiPackage className="w-4 h-4 mx-auto mb-1" />
+            <div>Elementos</div>
           </button>
-          <button
+          <button 
             onClick={() => setActiveTab('sections')}
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'sections'
-                ? 'bg-[#8b5cf6] text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
+            className={`flex-1 py-3 text-xs font-medium transition-colors ${
+              activeTab === 'sections' 
+                ? 'text-white bg-[#2a2a2a] border-b-2 border-purple-500' 
+                : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
             }`}
           >
-            Secciones
+            <FiGrid className="w-4 h-4 mx-auto mb-1" />
+            <div>Secciones</div>
           </button>
         </div>
       </div>
@@ -338,7 +344,7 @@ function ElementsPanel({ onAddElement }) {
       {/* Contenido de pestañas */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'elements' && (
-          <div className="px-4 pb-4">
+          <div className="p-4">
             <div className="text-xs text-gray-400 mb-3">
               Arrastra para agregar al canvas
             </div>
@@ -355,7 +361,9 @@ function ElementsPanel({ onAddElement }) {
         )}
 
         {activeTab === 'sections' && (
-          <SectionsPanel />
+          <div className="p-4">
+            <SectionsPanel />
+          </div>
         )}
       </div>
     </div>

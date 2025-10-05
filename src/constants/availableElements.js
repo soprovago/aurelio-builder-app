@@ -66,7 +66,7 @@ export const availableElements = [
     name: 'Imagen',
     iconName: 'FiImage',
     defaultProps: {
-      src: '/api/placeholder/400/300',
+      src: '/images/general-img-landscape.png',
       alt: 'Imagen',
       width: '100%',
       height: 'auto',

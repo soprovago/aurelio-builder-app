@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiGrid, FiImage, FiType, FiLayout, FiNavigation, FiMoreHorizontal, FiColumns, FiMenu } from 'react-icons/fi';
+import { FiGrid, FiImage, FiType, FiLayout, FiNavigation, FiMoreHorizontal, FiColumns, FiMenu, FiPackage } from 'react-icons/fi';
 import { availableElements } from '../config/availableElements.jsx';
 import ContainerTemplatesPanel from './ContainerTemplatesPanel';
 import { createFromTemplate } from '../templates/containerTemplates';
@@ -103,7 +103,7 @@ function SectionsPanel({ onAddTemplate }) {
   };
 
   return (
-    <div className="px-4 pb-4">
+    <div className="p-4">
       {/* Plantillas prediseñadas */}
       <div className="mb-6">
         <h4 className="text-sm font-medium text-white mb-3">Plantillas</h4>
@@ -165,28 +165,30 @@ function ElementsPanel({ onAddElement }) {
 
   return (
     <div className="w-64 bg-gradient-to-b from-[#1a1a1a] to-[#151515] border-r border-[#2a2a2a] flex flex-col shadow-xl">
-      {/* Header con pestañas */}
-      <div className="p-4 pb-0 flex-shrink-0">
-        <div className="flex bg-[#2a2a2a] rounded-lg p-1 mb-4">
-          <button
+      {/* Header con pestañas - Estilo unificado */}
+      <div className="border-b border-[#2a2a2a] bg-[#1a1a1a] flex-shrink-0">
+        <div className="flex w-full">
+          <button 
             onClick={() => setActiveTab('elements')}
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'elements'
-                ? 'bg-[#8b5cf6] text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
+            className={`flex-1 py-3 text-xs font-medium transition-colors ${
+              activeTab === 'elements' 
+                ? 'text-white bg-[#2a2a2a] border-b-2 border-purple-500' 
+                : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
             }`}
           >
-            Elementos
+            <FiPackage className="w-4 h-4 mx-auto mb-1" />
+            <div>Elementos</div>
           </button>
-          <button
+          <button 
             onClick={() => setActiveTab('sections')}
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'sections'
-                ? 'bg-[#8b5cf6] text-white shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
+            className={`flex-1 py-3 text-xs font-medium transition-colors ${
+              activeTab === 'sections' 
+                ? 'text-white bg-[#2a2a2a] border-b-2 border-purple-500' 
+                : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
             }`}
           >
-            Secciones
+            <FiGrid className="w-4 h-4 mx-auto mb-1" />
+            <div>Secciones</div>
           </button>
         </div>
       </div>
@@ -194,7 +196,7 @@ function ElementsPanel({ onAddElement }) {
       {/* Contenido de pestañas */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'elements' && (
-          <div className="px-4 pb-4">
+          <div className="p-4">
             <div className="grid grid-cols-2 gap-3">
               {availableElements.map((element) => (
                 <div key={element.id} className="relative">

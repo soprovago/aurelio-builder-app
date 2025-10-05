@@ -64,10 +64,38 @@ export const availableElements = [
     name: 'Imagen',
     icon: <FiImage className="w-5 h-5" />,
     defaultProps: {
-      src: '/api/placeholder/400/300',
-      alt: 'Imagen',
-      width: '100%',
-      height: 'auto',
+      src: '/images/general-img-landscape.png',
+      alt: 'Imagen placeholder',
+      title: '',
+      width: '400px',
+      height: '300px',
+      maxWidth: '100%',
+      minWidth: 'auto',
+      maxHeight: 'auto',
+      minHeight: 'auto',
+      objectFit: 'cover',
+      objectPosition: 'center',
+      borderRadius: '0px',
+      border: 'none',
+      boxShadow: 'none',
+      opacity: '1',
+      filter: 'none',
+      transform: 'none',
+      cursor: 'default',
+      loading: 'lazy',
+      alignSelf: 'auto',
+      margin: '0px',
+      padding: '0px',
+      backgroundColor: 'transparent',
+      // Propiedades de enlace
+      href: '',
+      target: '_self',
+      rel: '',
+      // Responsive
+      responsive: true,
+      // Accesibilidad
+      role: '',
+      ariaLabel: ''
     }
   },
   {

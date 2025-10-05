@@ -30,17 +30,104 @@ export const renderBasicElement = (element) => {
         </div>
       );
     case ELEMENT_TYPES.IMAGE:
-      return (
-        <img
-          src={element.props.src}
-          alt={element.props.alt}
-          style={{
-            width: element.props.width,
-            height: element.props.height,
-            objectFit: 'cover',
-          }}
-        />
-      );
+      const handleImageError = (e) => {
+        // Fallback a placeholder si la imagen falla
+        e.target.src = 'https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Error+Cargando+Imagen';
+      };
+
+      const handleImageClick = (e) => {
+        // En modo editor, prevenir navegación si es un enlace
+        if (element.props.href && element.props.href !== '') {
+          e.preventDefault();
+          console.log(`Imagen clickeada - Navegaría a: ${element.props.href}`);
+        }
+      };
+
+      const imageStyles = {
+        width: element.props.width || 'auto',
+        height: element.props.height || 'auto',
+        maxWidth: element.props.maxWidth || '100%',
+        minWidth: element.props.minWidth || 'auto',
+        maxHeight: element.props.maxHeight || 'auto',
+        minHeight: element.props.minHeight || 'auto',
+        objectFit: element.props.objectFit || 'cover',
+        objectPosition: element.props.objectPosition || 'center',
+        borderRadius: element.props.borderRadius || '0px',
+        border: element.props.border || 'none',
+        boxShadow: element.props.boxShadow || 'none',
+        opacity: element.props.opacity || '1',
+        filter: element.props.filter || 'none',
+        transform: element.props.transform || 'none',
+        cursor: element.props.href ? 'pointer' : (element.props.cursor || 'default'),
+        transition: 'all 0.2s ease',
+        margin: element.props.margin || '0px',
+        padding: element.props.padding || '0px',
+        backgroundColor: element.props.backgroundColor || 'transparent',
+        display: 'block',
+        // Responsive
+        ...(element.props.responsive && {
+          width: '100%',
+          height: 'auto'
+        })
+      };
+
+      const commonProps = {
+        src: element.props.src || 'https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Imagen',
+        alt: element.props.alt || 'Imagen',
+        title: element.props.title || '',
+        loading: element.props.loading || 'lazy',
+        style: imageStyles,
+        onClick: handleImageClick,
+        onError: handleImageError,
+        // Accesibilidad
+        role: element.props.role || '',
+        'aria-label': element.props.ariaLabel || element.props.alt || 'Imagen'
+      };
+
+      let imageElement;
+      
+      if (element.props.href && element.props.href !== '') {
+        // Renderizar como enlace con imagen
+        const isExternalLink = element.props.href.startsWith('http') || element.props.href.startsWith('https');
+        
+        imageElement = (
+          <a
+            href={element.props.href}
+            target={isExternalLink ? (element.props.target || '_blank') : (element.props.target || '_self')}
+            rel={isExternalLink ? (element.props.rel || 'noopener noreferrer') : element.props.rel}
+            style={{
+              display: 'inline-block',
+              lineHeight: 0, // Elimina espacios en blanco debajo de la imagen
+              ...(element.props.alignSelf && { alignSelf: element.props.alignSelf })
+            }}
+            onClick={handleImageClick}
+          >
+            <img {...commonProps} />
+          </a>
+        );
+      } else {
+        // Renderizar imagen simple
+        imageElement = (
+          <img 
+            {...commonProps}
+            style={{
+              ...imageStyles,
+              ...(element.props.alignSelf && { alignSelf: element.props.alignSelf })
+            }}
+          />
+        );
+      }
+      
+      // Si la imagen tiene alignSelf: center, envolverla en un div centrado
+      if (element.props.alignSelf === 'center') {
+        return (
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            {imageElement}
+          </div>
+        );
+      }
+      
+      return imageElement;
     case ELEMENT_TYPES.BUTTON:
       const handleButtonClick = (e) => {
         // En modo editor, prevenir navegación real

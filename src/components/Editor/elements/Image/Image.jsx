@@ -12,7 +12,7 @@ function Image({
   onDoubleClick = () => {},
   viewportMode,
   // Image specific props
-  src = '/api/placeholder/400/300',
+  src = '/images/general-img-landscape.png',
   alt = 'Imagen',
   title = '',
   width = '100%',
@@ -261,7 +261,7 @@ Image.elementConfig = {
     src: {
       type: 'image',
       label: 'URL de la imagen',
-      default: '/api/placeholder/400/300',
+      default: '/images/general-img-landscape.png',
       required: true,
       category: 'content'
     },
@@ -323,7 +323,7 @@ Image.elementConfig = {
 
   // Props por defecto específicas
   defaultProps: {
-    src: '/api/placeholder/400/300',
+    src: '/images/general-img-landscape.png',
     alt: 'Imagen',
     title: '',
     width: '100%',

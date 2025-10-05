@@ -66,7 +66,7 @@ export const getAvailableElements = () => [
     name: 'Imagen',
     icon: React.createElement(FiImage, { className: "w-5 h-5" }),
     defaultProps: {
-      src: '/api/placeholder/400/300',
+      src: '/images/general-img-landscape.png',
       alt: 'Imagen',
       width: '100%',
       height: 'auto',

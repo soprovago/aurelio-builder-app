@@ -36,7 +36,7 @@ export const TEMPLATE_LIBRARY = [
     name: 'Landing Corporativa Pro',
     category: 'landing',
     description: 'Landing page profesional completa con hero, características, testimonios y CTA',
-    thumbnail: '/api/placeholder/400/300',
+    thumbnail: 'https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Template+Preview',
     author: 'Aurelio Team',
     downloads: 2456,
     rating: 4.9,
