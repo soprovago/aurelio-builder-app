@@ -64,6 +64,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
   const [dragOverPosition, setDragOverPosition] = useState(null);
   const dragRef = useRef(null);
   const dragTimeoutRef = useRef(null);
+  const dragOverThrottleRef = useRef(null);
 
 
   // Efecto de limpieza para timeout de drag
@@ -71,6 +72,9 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     return () => {
       if (dragTimeoutRef.current) {
         clearTimeout(dragTimeoutRef.current);
+      }
+      if (dragOverThrottleRef.current) {
+        clearTimeout(dragOverThrottleRef.current);
       }
     };
   }, []);
@@ -123,14 +127,25 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         e.stopPropagation();
         // Forzar dropEffect para permitir el drop
         e.dataTransfer.dropEffect = e.dataTransfer.effectAllowed === 'move' ? 'move' : 'copy';
-        setIsDragOver(true);
+        
+        // Throttle para reducir la frecuencia de eventos
+        if (!dragOverThrottleRef.current) {
+          setIsDragOver(true);
+          dragOverThrottleRef.current = setTimeout(() => {
+            dragOverThrottleRef.current = null;
+          }, 16); // ~60fps
+        }
+        
         return false;
       };
 
       const handleContainerDragLeave = (e) => {
-        // Limpiar estado cuando salimos del contenedor
+        // Limpiar estado cuando salimos del contenedor (más tolerante)
         if (!e.currentTarget.contains(e.relatedTarget)) {
-          setIsDragOver(false);
+          // Añadir un pequeño delay para evitar flickering
+          setTimeout(() => {
+            setIsDragOver(false);
+          }, 50);
         }
       };
 
@@ -371,9 +386,9 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         draggable={true} // Hacer todos los elementos draggable
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        onDragOver={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragOver} // Solo no-contenedores
-        onDragLeave={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragLeave}
-        onDrop={element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDrop}
+        onDragOver={undefined} // Deshabilitado para evitar interferencias con contenedores
+        onDragLeave={undefined}
+        onDrop={undefined}
         onMouseEnter={(e) => {
           e.stopPropagation();
           setShowAddButton(true);

@@ -95,8 +95,8 @@ export const ContainerElement = ({
       }}
       className={`relative transition-all duration-300 ease-in-out cursor-pointer ${
         isDragOver 
-          ? 'shadow-lg transform scale-[1.02]' 
-          : 'hover:shadow-md'
+          ? 'shadow-lg transform scale-[1.02] z-50' 
+          : 'hover:shadow-md z-auto'
       }`}
       style={{
         minHeight: element.props.minHeight || (hasChildren ? '120px' : '200px'),
@@ -109,7 +109,12 @@ export const ContainerElement = ({
         alignItems: hasChildren ? 'stretch' : 'center',
         justifyContent: hasChildren ? 'flex-start' : 'center',
         cursor: isDragOver ? 'copy' : 'default',
-        position: 'relative'
+        position: 'relative',
+        // Mejorar área de detección durante drag
+        ...(isDragOver && {
+          margin: '-4px',
+          padding: `calc(${element.props.padding || (hasChildren ? '16px' : '48px')} + 4px)`
+        })
       }}
     >
       {/* Overlay de drop */}
