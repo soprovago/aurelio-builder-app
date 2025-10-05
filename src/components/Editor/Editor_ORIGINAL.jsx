@@ -41,6 +41,7 @@ import ContainerReorderControls from './components/ContainerReorderControls';
 import ContainerVisualIndicators from './components/ContainerVisualIndicators';
 import QuickLayoutControls from './components/QuickLayoutControls';
 import { FlexibleChildWrapper } from './components/FlexibleChildWrapper';
+import EasyLayoutMode from './components/EasyLayoutMode';
 
 // Constantes de estilo
 const CONTROL_STYLES = {
@@ -570,6 +571,9 @@ function Editor({ onExit }) {
   // Estado para drag activo (para collision debugging)
   const [activeDrag, setActiveDrag] = useState(null);
   
+  // Estado para Easy Layout
+  const [showEasyLayout, setShowEasyLayout] = useState(false);
+  
   // Sistema de collision detection mejorado
   const collisionDetection = useCollisionDetection({
     algorithm: 'smart',
@@ -582,6 +586,33 @@ function Editor({ onExit }) {
   const generateId = () => {
     return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   };
+
+  // Función para crear layouts desde Easy Layout
+  const handleEasyLayoutCreate = useCallback((preset) => {
+    console.log('Creating Easy Layout:', preset);
+    
+    if (preset.layout) {
+      // Si viene una estructura completa, usarla directamente
+      const newElement = {
+        id: preset.layout.id || `${preset.layout.type}-${generateId()}`,
+        type: preset.layout.type,
+        props: preset.layout.props
+      };
+      setElements(prev => [...prev, newElement]);
+      setSelectedElement(newElement);
+    } else {
+      // Para presets normales, usar el comportamiento existente
+      const newElement = {
+        id: `${preset.layout.type}-${generateId()}`,
+        type: preset.layout.type,
+        props: { ...preset.layout.props, children: preset.layout.props.children || [] }
+      };
+      setElements(prev => [...prev, newElement]);
+      setSelectedElement(newElement);
+    }
+    
+    setShowEasyLayout(false);
+  }, []);
 
   // Función para agregar elementos al canvas principal
   const addElement = useCallback((elementTemplate) => {
@@ -1042,6 +1073,7 @@ function Editor({ onExit }) {
             CanvasElement={CanvasElement}
             collisionDetection={collisionDetection}
             setActiveDrag={setActiveDrag}
+            onToggleEasyLayout={() => setShowEasyLayout(true)}
           />
         </div>
 
@@ -1059,6 +1091,19 @@ function Editor({ onExit }) {
         activeRect={activeDrag?.rect}
         activeElement={activeDrag?.element}
       />
+      
+      {/* Easy Layout Modal */}
+      {showEasyLayout && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <EasyLayoutMode
+              isActive={showEasyLayout}
+              onToggle={() => setShowEasyLayout(false)}
+              onCreateLayout={handleEasyLayoutCreate}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

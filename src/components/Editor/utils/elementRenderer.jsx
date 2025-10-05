@@ -42,20 +42,117 @@ export const renderBasicElement = (element) => {
         />
       );
     case ELEMENT_TYPES.BUTTON:
-      return (
-        <button
-          style={{
-            backgroundColor: element.props.backgroundColor,
-            color: element.props.textColor,
-            padding: element.props.padding,
-            borderRadius: element.props.borderRadius,
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          {element.props.text}
-        </button>
-      );
+      const handleButtonClick = (e) => {
+        // En modo editor, prevenir navegación real
+        if (element.props.href && element.props.href !== '#') {
+          e.preventDefault();
+          console.log(`Botón clickeado - Navegaría a: ${element.props.href}`);
+          // En producción, aquí sería window.open() o window.location
+        }
+      };
+
+      const buttonStyles = {
+        backgroundColor: element.props.backgroundColor || '#8b5cf6',
+        color: element.props.textColor || '#ffffff',
+        padding: element.props.padding || '12px 24px',
+        borderRadius: element.props.borderRadius || '8px',
+        border: element.props.border || 'none',
+        cursor: element.props.disabled ? 'not-allowed' : 'pointer',
+        fontSize: element.props.fontSize || '16px',
+        fontWeight: element.props.fontWeight || '500',
+        fontFamily: element.props.fontFamily || 'Inter, sans-serif',
+        transition: element.props.transition || 'all 0.2s ease',
+        textDecoration: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        outline: 'none',
+        opacity: element.props.disabled ? 0.6 : 1,
+        transform: 'translateZ(0)', // Optimización de hardware
+        ...(element.props.width && element.props.width !== 'auto' && { width: element.props.width }),
+        ...(element.props.height && element.props.height !== 'auto' && { height: element.props.height }),
+      };
+
+      const hoverStyles = {
+        backgroundColor: element.props.backgroundColorHover || '#7c3aed',
+        color: element.props.textColorHover || '#ffffff',
+      };
+
+      // Determinar el tipo de elemento (button o link)
+      const isLink = element.props.href && element.props.href !== '#';
+      const isExternalLink = isLink && (element.props.href.startsWith('http') || element.props.href.startsWith('https'));
+      
+      const buttonProps = {
+        style: buttonStyles,
+        onClick: handleButtonClick,
+        onMouseEnter: (e) => {
+          if (!element.props.disabled) {
+            Object.assign(e.target.style, hoverStyles);
+          }
+        },
+        onMouseLeave: (e) => {
+          if (!element.props.disabled) {
+            e.target.style.backgroundColor = buttonStyles.backgroundColor;
+            e.target.style.color = buttonStyles.color;
+          }
+        },
+        onFocus: (e) => {
+          if (!element.props.disabled) {
+            e.target.style.outline = '2px solid #8b5cf6';
+            e.target.style.outlineOffset = '2px';
+          }
+        },
+        onBlur: (e) => {
+          e.target.style.outline = 'none';
+        },
+        // Atributos de accesibilidad
+        'aria-label': element.props.ariaLabel || element.props.text,
+        'aria-disabled': element.props.disabled || false,
+        tabIndex: element.props.disabled ? -1 : 0,
+      };
+
+      let buttonElement;
+      
+      if (isLink) {
+        // Renderizar como enlace
+        buttonElement = (
+          <a
+            href={element.props.href}
+            target={isExternalLink ? (element.props.target || '_blank') : (element.props.target || '_self')}
+            rel={isExternalLink ? (element.props.rel || 'noopener noreferrer') : element.props.rel}
+            {...buttonProps}
+            role="button"
+          >
+            {element.props.text}
+            {isExternalLink && (
+              <span style={{ marginLeft: '4px', fontSize: '0.8em' }}>↗</span>
+            )}
+          </a>
+        );
+      } else {
+        // Renderizar como botón
+        buttonElement = (
+          <button
+            type={element.props.buttonType || 'button'}
+            disabled={element.props.disabled || false}
+            {...buttonProps}
+          >
+            {element.props.text}
+          </button>
+        );
+      }
+      
+      // Si el botón tiene alignSelf: center, envolverlo en un div centrado
+      if (element.props.alignSelf === 'center') {
+        return (
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            {buttonElement}
+          </div>
+        );
+      }
+      
+      return buttonElement;
     default:
       return <div className="p-4 bg-gray-700 rounded">Elemento: {element.type}</div>;
   }

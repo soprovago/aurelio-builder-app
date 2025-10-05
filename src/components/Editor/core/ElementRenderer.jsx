@@ -48,11 +48,17 @@ function ElementRenderer({
   };
 
   try {
+    // Estilos especiales para centrar botones
+    const wrapperStyle = element.type === 'button' && element.props?.alignSelf === 'center' 
+      ? { display: 'flex', justifyContent: 'center' }
+      : {};
+
     return (
       <div
         className={`element-wrapper ${isSelected ? 'selected' : ''}`}
         data-element-id={element.id}
         data-element-type={element.type}
+        style={wrapperStyle}
       >
         <RenderComponent {...computedProps} />
       </div>

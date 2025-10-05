@@ -245,6 +245,18 @@ export const FLEXBOX_PROPERTIES = {
       { value: 'wrap', label: 'Envolver' },
       { value: 'wrap-reverse', label: 'Envolver reverso' }
     ]
+  },
+  alignSelf: {
+    type: 'select',
+    default: 'auto',
+    options: [
+      { value: 'auto', label: 'Auto' },
+      { value: 'flex-start', label: 'Inicio' },
+      { value: 'center', label: 'Centro' },
+      { value: 'flex-end', label: 'Final' },
+      { value: 'stretch', label: 'Estirar' },
+      { value: 'baseline', label: 'Línea base' }
+    ]
   }
 };
 

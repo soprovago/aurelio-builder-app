@@ -31,6 +31,7 @@ function Button({
   border = 'none',
   width = 'auto',
   height = 'auto',
+  alignSelf = 'auto',
   // Hover states
   backgroundColorHover = '#7c3aed',
   textColorHover = '#ffffff',
@@ -54,6 +55,7 @@ function Button({
     border: border === 'none' ? 'none' : border,
     width,
     height: height === 'auto' ? 'auto' : height,
+    alignSelf,
     position: 'relative',
     cursor: disabled ? 'not-allowed' : 'pointer',
     textDecoration: 'none',

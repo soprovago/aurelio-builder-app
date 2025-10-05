@@ -1,18 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { VIEWPORT_MODES, VIEWPORT_CONFIGS } from '../../../constants/viewportConfigs';
-import { FiPlus, FiGrid } from 'react-icons/fi';
+import { FiPlus } from 'react-icons/fi';
 import CanvasTemplateSystem from './CanvasTemplateSystem';
 import { useAutoScroll } from '../hooks/useAutoScroll';
-import { VisualGrid, GridToggle } from './VisualGrid';
 import { CanvasDropZone, InsertionIndicator } from './EnhancedDropZones';
-import EasyLayoutMode from './EasyLayoutMode';
 // CanvasElement se importará desde el Editor principal
 
 // Componente Canvas principal
-function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onDeleteElement, onDuplicateElement, onAddToContainer, onMoveToContainer, onUpdateElement, onAddElementAtIndex, onReorder, onReorderInContainer, onMoveOutOfContainer, CanvasElement, collisionDetection, setActiveDrag }) {
+function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAddElement, onDeleteElement, onDuplicateElement, onAddToContainer, onMoveToContainer, onUpdateElement, onAddElementAtIndex, onReorder, onReorderInContainer, onMoveOutOfContainer, CanvasElement, collisionDetection, setActiveDrag, onToggleEasyLayout }) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [showGrid, setShowGrid] = useState(false);
-  const [easyLayoutMode, setEasyLayoutMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
   
@@ -80,32 +76,9 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
     }
   };
 
-  const handleEasyLayoutCreate = (preset) => {
-    // Crear contenedor basado en el preset seleccionado
-    const newElement = {
-      id: `${preset.layout.type}-${Date.now()}`,
-      type: preset.layout.type,
-      props: { ...preset.layout.props, children: [] }
-    };
-    onAddElement(newElement);
-    setEasyLayoutMode(false);
-  };
 
   return (
     <div className="w-full h-full bg-gray-100 relative">
-      {/* Controles de herramientas */}
-      <div className="absolute top-4 left-4 z-50 flex items-center gap-3">
-        <GridToggle 
-          showGrid={showGrid}
-          onToggle={() => setShowGrid(!showGrid)}
-          isDragging={isDragging}
-        />
-        <EasyLayoutMode
-          isActive={easyLayoutMode}
-          onToggle={() => setEasyLayoutMode(!easyLayoutMode)}
-          onCreateLayout={handleEasyLayoutCreate}
-        />
-      </div>
       
       {/* Indicador de auto-scroll */}
       {showAutoScrollIndicator && (
@@ -133,12 +106,6 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
           setIsDragging(false);
         }}
       >
-        {/* Grilla visual */}
-        <VisualGrid 
-          isDragging={isDragging}
-          showGrid={showGrid}
-          onToggleGrid={() => setShowGrid(!showGrid)}
-        />
         <div className="w-full flex justify-center p-4">
           <CanvasDropZone
             isActive={isDragOver}
@@ -207,6 +174,7 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                     onAddContainerStructure={handleAddContainerStructure}
                     onLoadTemplate={handleLoadTemplate}
                     onUploadTemplate={handleUploadTemplate}
+                    onToggleEasyLayout={onToggleEasyLayout}
                   />
                 </div>
               </>

@@ -77,11 +77,25 @@ export const availableElements = [
     icon: <FiSquare className="w-5 h-5" />,
     defaultProps: {
       text: 'Haz Clic Aquí',
-      link: '#',
+      href: '#',
+      target: '_self',
+      rel: '',
+      buttonType: 'button',
+      disabled: false,
       backgroundColor: '#8b5cf6',
       textColor: '#ffffff',
+      backgroundColorHover: '#7c3aed',
+      textColorHover: '#ffffff',
+      fontSize: '16px',
+      fontWeight: '500',
+      fontFamily: 'Inter, sans-serif',
       padding: '12px 24px',
+      margin: '0px',
       borderRadius: '8px',
+      border: 'none',
+      transition: 'all 0.2s ease',
+      alignSelf: 'auto',
+      ariaLabel: ''
     }
   }
 ];

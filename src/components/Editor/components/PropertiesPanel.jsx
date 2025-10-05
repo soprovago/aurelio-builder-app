@@ -298,32 +298,236 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
 
       {selectedElement.type === ELEMENT_TYPES.BUTTON && (
         <>
+          {/* Contenido */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-300 mb-2">Texto</label>
             <input
               type="text"
-              value={selectedElement.props.text}
+              value={selectedElement.props.text || 'Botón'}
               onChange={(e) => handlePropertyChange('text', e.target.value)}
               className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white"
+              placeholder="Texto del botón"
             />
           </div>
+
+          {/* Enlaces */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">URL (Enlace)</label>
+            <input
+              type="url"
+              value={selectedElement.props.href || '#'}
+              onChange={(e) => handlePropertyChange('href', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              placeholder="https://ejemplo.com o #"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Abrir enlace</label>
+            <select
+              value={selectedElement.props.target || '_self'}
+              onChange={(e) => handlePropertyChange('target', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+            >
+              <option value="_self">Misma pestaña</option>
+              <option value="_blank">Nueva pestaña</option>
+              <option value="_parent">Ventana padre</option>
+              <option value="_top">Ventana superior</option>
+            </select>
+          </div>
+
+          {/* Colores normales */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-300 mb-2">Color de fondo</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                value={selectedElement.props.backgroundColor}
+                value={selectedElement.props.backgroundColor || '#8b5cf6'}
                 onChange={(e) => handlePropertyChange('backgroundColor', e.target.value)}
                 className="w-12 h-10 bg-[#2a2a2a] border border-[#3a3a3a] rounded cursor-pointer"
               />
               <input
                 type="text"
-                value={selectedElement.props.backgroundColor}
+                value={selectedElement.props.backgroundColor || '#8b5cf6'}
                 onChange={(e) => handlePropertyChange('backgroundColor', e.target.value)}
                 className="flex-1 px-3 py-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-sm font-mono"
                 placeholder="#8b5cf6"
               />
             </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Color de texto</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={selectedElement.props.textColor || '#ffffff'}
+                onChange={(e) => handlePropertyChange('textColor', e.target.value)}
+                className="w-12 h-10 bg-[#2a2a2a] border border-[#3a3a3a] rounded cursor-pointer"
+              />
+              <input
+                type="text"
+                value={selectedElement.props.textColor || '#ffffff'}
+                onChange={(e) => handlePropertyChange('textColor', e.target.value)}
+                className="flex-1 px-3 py-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-sm font-mono"
+                placeholder="#ffffff"
+              />
+            </div>
+          </div>
+
+          {/* Colores hover */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Color de fondo (hover)</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={selectedElement.props.backgroundColorHover || '#7c3aed'}
+                onChange={(e) => handlePropertyChange('backgroundColorHover', e.target.value)}
+                className="w-12 h-10 bg-[#2a2a2a] border border-[#3a3a3a] rounded cursor-pointer"
+              />
+              <input
+                type="text"
+                value={selectedElement.props.backgroundColorHover || '#7c3aed'}
+                onChange={(e) => handlePropertyChange('backgroundColorHover', e.target.value)}
+                className="flex-1 px-3 py-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-sm font-mono"
+                placeholder="#7c3aed"
+              />
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Color de texto (hover)</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={selectedElement.props.textColorHover || '#ffffff'}
+                onChange={(e) => handlePropertyChange('textColorHover', e.target.value)}
+                className="w-12 h-10 bg-[#2a2a2a] border border-[#3a3a3a] rounded cursor-pointer"
+              />
+              <input
+                type="text"
+                value={selectedElement.props.textColorHover || '#ffffff'}
+                onChange={(e) => handlePropertyChange('textColorHover', e.target.value)}
+                className="flex-1 px-3 py-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-sm font-mono"
+                placeholder="#ffffff"
+              />
+            </div>
+          </div>
+
+          {/* Tipografía */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Tamaño de fuente</label>
+            <input
+              type="text"
+              value={selectedElement.props.fontSize || '16px'}
+              onChange={(e) => handlePropertyChange('fontSize', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              placeholder="16px"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Peso de fuente</label>
+            <select
+              value={selectedElement.props.fontWeight || '500'}
+              onChange={(e) => handlePropertyChange('fontWeight', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+            >
+              <option value="300">Light (300)</option>
+              <option value="400">Regular (400)</option>
+              <option value="500">Medium (500)</option>
+              <option value="600">Semibold (600)</option>
+              <option value="700">Bold (700)</option>
+              <option value="800">Extra Bold (800)</option>
+            </select>
+          </div>
+
+          {/* Espaciado y dimensiones */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Padding</label>
+            <input
+              type="text"
+              value={selectedElement.props.padding || '12px 24px'}
+              onChange={(e) => handlePropertyChange('padding', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              placeholder="12px 24px"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Radio del borde</label>
+            <input
+              type="text"
+              value={selectedElement.props.borderRadius || '8px'}
+              onChange={(e) => handlePropertyChange('borderRadius', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              placeholder="8px"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Borde</label>
+            <input
+              type="text"
+              value={selectedElement.props.border || 'none'}
+              onChange={(e) => handlePropertyChange('border', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              placeholder="2px solid #8b5cf6 o none"
+            />
+          </div>
+
+          {/* Comportamiento */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Tipo de botón</label>
+            <select
+              value={selectedElement.props.buttonType || 'button'}
+              onChange={(e) => handlePropertyChange('buttonType', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+            >
+              <option value="button">Botón normal</option>
+              <option value="submit">Enviar formulario</option>
+              <option value="reset">Resetear formulario</option>
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="flex items-center gap-2 text-sm text-gray-300">
+              <input
+                type="checkbox"
+                checked={selectedElement.props.disabled || false}
+                onChange={(e) => handlePropertyChange('disabled', e.target.checked)}
+                className="w-4 h-4 bg-[#2a2a2a] border border-[#3a3a3a] rounded"
+              />
+              Deshabilitado
+            </label>
+          </div>
+
+          {/* Alineación */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Alineación</label>
+            <select
+              value={selectedElement.props.alignSelf || 'auto'}
+              onChange={(e) => handlePropertyChange('alignSelf', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+            >
+              <option value="auto">Auto</option>
+              <option value="flex-start">Izquierda</option>
+              <option value="center">Centro</option>
+              <option value="flex-end">Derecha</option>
+              <option value="stretch">Estirar</option>
+            </select>
+          </div>
+
+          {/* Accesibilidad */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Etiqueta de accesibilidad</label>
+            <input
+              type="text"
+              value={selectedElement.props.ariaLabel || ''}
+              onChange={(e) => handlePropertyChange('ariaLabel', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm"
+              placeholder="Descripción para lectores de pantalla"
+            />
           </div>
         </>
       )}

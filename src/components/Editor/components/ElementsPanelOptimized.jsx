@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FiGrid, FiImage, FiType, FiLayout, FiNavigation, FiMoreHorizontal, FiColumns, FiMenu } from 'react-icons/fi';
 import { availableElements } from '../config/availableElements.jsx';
 import ContainerTemplatesPanel from './ContainerTemplatesPanel';
 import { createFromTemplate } from '../templates/containerTemplates';
@@ -55,43 +56,37 @@ function SectionsPanel({ onAddTemplate }) {
       id: 'card-template',
       name: 'Card',
       description: 'Tarjeta con imagen, título y texto',
-      gradient: 'from-pink-500 to-rose-500',
-      hoverColor: 'pink-400'
+      icon: <FiImage className="w-4 h-4" strokeWidth={1.5} />
     },
     {
       id: 'hero-template',
       name: 'Hero Section',
       description: 'Sección hero con título, subtítulo y botón',
-      gradient: 'from-blue-500 to-purple-500',
-      hoverColor: 'blue-400'
+      icon: <FiType className="w-4 h-4" strokeWidth={1.5} />
     },
     {
       id: 'two-columns-template',
-      name: 'Dos Columnas',
-      description: 'Layout de dos columnas con contenido',
-      gradient: 'from-green-500 to-teal-500',
-      hoverColor: 'green-400'
+      name: 'Dos Contenedores',
+      description: 'Layout de dos contenedores con contenido',
+      icon: <FiColumns className="w-4 h-4" strokeWidth={1.5} />
     },
     {
       id: 'three-columns-template',
-      name: 'Tres Columnas',
-      description: 'Layout de tres columnas para grid de contenido',
-      gradient: 'from-amber-500 to-orange-500',
-      hoverColor: 'amber-400'
+      name: 'Tres Contenedores',
+      description: 'Layout de tres contenedores para grid de contenido',
+      icon: <FiGrid className="w-4 h-4" strokeWidth={1.5} />
     },
     {
       id: 'header-template',
       name: 'Header/Navegación',
       description: 'Header con logo y navegación',
-      gradient: 'from-indigo-500 to-blue-500',
-      hoverColor: 'indigo-400'
+      icon: <FiNavigation className="w-4 h-4" strokeWidth={1.5} />
     },
     {
       id: 'footer-template',
       name: 'Footer',
       description: 'Footer con información y enlaces',
-      gradient: 'from-slate-600 to-gray-700',
-      hoverColor: 'slate-400'
+      icon: <FiMoreHorizontal className="w-4 h-4" strokeWidth={1.5} />
     }
   ];
 
@@ -120,12 +115,14 @@ function SectionsPanel({ onAddTemplate }) {
               className="p-3 bg-gradient-to-r from-[#2a2a2a] to-[#252525] hover:from-[#3a3a3a] hover:to-[#353535] rounded-lg transition-all duration-200 group text-left border border-[#404040] hover:border-[#8b5cf6]/50"
             >
               <div className="flex items-center space-x-3">
-                <div className={`w-8 h-6 bg-gradient-to-r ${section.gradient} rounded flex-shrink-0`} />
+                <div className="text-[#9ca3af] group-hover:text-white transition-colors flex-shrink-0">
+                  {section.icon}
+                </div>
                 <div className="flex-1">
-                  <div className={`text-sm font-medium text-white group-hover:text-${section.hoverColor} transition-colors`}>
+                  <div className="text-sm font-medium text-[#e4e4e7] group-hover:text-white transition-colors">
                     {section.name}
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-[#9ca3af]">
                     {section.description}
                   </div>
                 </div>

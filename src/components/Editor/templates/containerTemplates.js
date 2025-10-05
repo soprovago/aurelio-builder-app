@@ -129,8 +129,8 @@ export const CONTAINER_TEMPLATES = {
 
   TWO_COLUMNS: {
     id: 'two-columns-template',
-    name: 'Dos Columnas',
-    description: 'Layout de dos columnas con contenido',
+    name: 'Dos Contenedores',
+    description: 'Layout de dos contenedores con contenido',
     icon: '📰',
     template: {
       type: ELEMENT_TYPES.CONTAINER,
@@ -160,7 +160,7 @@ export const CONTAINER_TEMPLATES = {
                   id: `heading-${generateId()}`,
                   type: ELEMENT_TYPES.HEADING,
                   props: {
-                    text: 'Columna Izquierda',
+                    text: 'Contenedor Izquierdo',
                     level: 3,
                     fontSize: '20px',
                     color: '#1f2937',
@@ -197,7 +197,7 @@ export const CONTAINER_TEMPLATES = {
                   id: `heading-${generateId()}`,
                   type: ELEMENT_TYPES.HEADING,
                   props: {
-                    text: 'Columna Derecha',
+                    text: 'Contenedor Derecho',
                     level: 3,
                     fontSize: '20px',
                     color: '#1f2937',
@@ -224,9 +224,9 @@ export const CONTAINER_TEMPLATES = {
 
   THREE_COLUMNS: {
     id: 'three-columns-template',
-    name: 'Tres Columnas',
-    description: 'Layout de tres columnas para grid de contenido',
-    icon: '🏛️',
+    name: 'Tres Contenedores',
+    description: 'Layout de tres contenedores para grid de contenido',
+    icon: '🏦️',
     template: {
       type: ELEMENT_TYPES.CONTAINER,
       props: {
@@ -245,17 +245,17 @@ export const CONTAINER_TEMPLATES = {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'flex-start',
-              gap: '12px',
-              padding: '20px',
+              gap: '16px',
+              padding: '24px',
               backgroundColor: '#f3f4f6',
-              borderRadius: '8px',
-              minHeight: '200px',
+              borderRadius: '12px',
+              minHeight: '280px',
               children: [
                 {
                   id: `heading-${generateId()}`,
                   type: ELEMENT_TYPES.HEADING,
                   props: {
-                    text: 'Columna 1',
+                    text: 'Contenedor 1',
                     level: 4,
                     fontSize: '18px',
                     color: '#1f2937',
@@ -266,10 +266,34 @@ export const CONTAINER_TEMPLATES = {
                   id: `text-${generateId()}`,
                   type: ELEMENT_TYPES.TEXT,
                   props: {
-                    text: 'Primera columna de contenido.',
-                    fontSize: '14px',
+                    text: 'Primer contenedor de contenido. Aquí puedes agregar más información relevante.',
+                    fontSize: '15px',
                     color: '#6b7280',
                     alignment: 'center'
+                  }
+                },
+                {
+                  id: `button-${generateId()}`,
+                  type: ELEMENT_TYPES.BUTTON,
+                  props: {
+                    text: 'Ver más',
+                    backgroundColor: '#8b5cf6',
+                    textColor: '#ffffff',
+                    backgroundColorHover: '#7c3aed',
+                    textColorHover: '#ffffff',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.2s ease',
+                    border: 'none',
+                    href: '#',
+                    target: '_self',
+                    buttonType: 'button',
+                    disabled: false,
+                    alignSelf: 'center',
+                    ariaLabel: 'Ver más información'
                   }
                 }
               ]
@@ -282,17 +306,17 @@ export const CONTAINER_TEMPLATES = {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'flex-start',
-              gap: '12px',
-              padding: '20px',
+              gap: '16px',
+              padding: '24px',
               backgroundColor: '#f3f4f6',
-              borderRadius: '8px',
-              minHeight: '200px',
+              borderRadius: '12px',
+              minHeight: '280px',
               children: [
                 {
                   id: `heading-${generateId()}`,
                   type: ELEMENT_TYPES.HEADING,
                   props: {
-                    text: 'Columna 2',
+                    text: 'Contenedor 2',
                     level: 4,
                     fontSize: '18px',
                     color: '#1f2937',
@@ -303,10 +327,35 @@ export const CONTAINER_TEMPLATES = {
                   id: `text-${generateId()}`,
                   type: ELEMENT_TYPES.TEXT,
                   props: {
-                    text: 'Segunda columna de contenido.',
-                    fontSize: '14px',
+                    text: 'Segundo contenedor de contenido. Aquí puedes agregar más información relevante.',
+                    fontSize: '15px',
                     color: '#6b7280',
                     alignment: 'center'
+                  }
+                },
+                {
+                  id: `button-${generateId()}`,
+                  type: ELEMENT_TYPES.BUTTON,
+                  props: {
+                    text: 'Enlace externo',
+                    backgroundColor: '#10b981',
+                    textColor: '#ffffff',
+                    backgroundColorHover: '#059669',
+                    textColorHover: '#ffffff',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.2s ease',
+                    border: 'none',
+                    href: 'https://ejemplo.com',
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    buttonType: 'button',
+                    disabled: false,
+                    alignSelf: 'center',
+                    ariaLabel: 'Abrir enlace externo'
                   }
                 }
               ]
@@ -319,17 +368,17 @@ export const CONTAINER_TEMPLATES = {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'flex-start',
-              gap: '12px',
-              padding: '20px',
+              gap: '16px',
+              padding: '24px',
               backgroundColor: '#f3f4f6',
-              borderRadius: '8px',
-              minHeight: '200px',
+              borderRadius: '12px',
+              minHeight: '280px',
               children: [
                 {
                   id: `heading-${generateId()}`,
                   type: ELEMENT_TYPES.HEADING,
                   props: {
-                    text: 'Columna 3',
+                    text: 'Contenedor 3',
                     level: 4,
                     fontSize: '18px',
                     color: '#1f2937',
@@ -340,10 +389,34 @@ export const CONTAINER_TEMPLATES = {
                   id: `text-${generateId()}`,
                   type: ELEMENT_TYPES.TEXT,
                   props: {
-                    text: 'Tercera columna de contenido.',
-                    fontSize: '14px',
+                    text: 'Tercer contenedor de contenido. Aquí puedes agregar más información relevante.',
+                    fontSize: '15px',
                     color: '#6b7280',
                     alignment: 'center'
+                  }
+                },
+                {
+                  id: `button-${generateId()}`,
+                  type: ELEMENT_TYPES.BUTTON,
+                  props: {
+                    text: 'Botón outline',
+                    backgroundColor: 'transparent',
+                    textColor: '#8b5cf6',
+                    backgroundColorHover: '#8b5cf6',
+                    textColorHover: '#ffffff',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.2s ease',
+                    border: '2px solid #8b5cf6',
+                    href: '#',
+                    target: '_self',
+                    buttonType: 'button',
+                    disabled: false,
+                    alignSelf: 'center',
+                    ariaLabel: 'Botón con borde'
                   }
                 }
               ]
