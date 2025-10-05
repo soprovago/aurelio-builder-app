@@ -76,8 +76,12 @@ export const ContainerElement = ({
 }) => {
   const hasChildren = element.props.children && element.props.children.length > 0;
   
+  
   // Determinar si el contenedor tiene color personalizado
   const hasCustomColor = element.props.backgroundColor && element.props.backgroundColor !== 'transparent';
+  
+  // Determinar si debe mostrar borde y fondo por defecto
+  const shouldShowDefaultStyling = !hasCustomColor;
 
   return (
     <div
@@ -86,8 +90,7 @@ export const ContainerElement = ({
       onDrop={onDrop}
       onDragEnter={onDragEnter}
       onClick={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
+        // No usar stopPropagation aquí para permitir eventos de drag
         onSelect(element);
       }}
       className={`relative transition-all duration-300 ease-in-out cursor-pointer ${
@@ -98,8 +101,8 @@ export const ContainerElement = ({
       style={{
         minHeight: element.props.minHeight || (hasChildren ? '120px' : '200px'),
         padding: element.props.padding || (hasChildren ? '16px' : '48px'),
-        backgroundColor: isDragOver ? '#dbeafe' : (element.props.backgroundColor || (isNested && !hasCustomColor ? '#f8fafc' : 'transparent')),
-        border: isDragOver ? '3px solid #3b82f6' : (isSelected ? '2px solid #8b5cf6' : (isNested && !hasCustomColor ? '1px dotted #cbd5e1' : element.props.border || 'none')),
+        backgroundColor: isDragOver ? '#dbeafe' : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent')),
+        border: isDragOver ? '3px solid #3b82f6' : (isSelected ? '2px solid #8b5cf6' : (shouldShowDefaultStyling ? '1px dotted #cbd5e1' : element.props.border || 'none')),
         borderRadius: element.props.borderRadius || '0px',
         display: 'flex',
         flexDirection: 'column',

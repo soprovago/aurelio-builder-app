@@ -44,6 +44,18 @@ const CONTROL_STYLES = {
 };
 
 
+// Función helper para verificar si un elemento es hijo de otro (evitar loops)
+const isElementChild = (parentElement, childId, allElements) => {
+  const findInChildren = (element) => {
+    if (element.id === childId) return true;
+    if (element.props?.children) {
+      return element.props.children.some(child => findInChildren(child));
+    }
+    return false;
+  };
+  return findInChildren(parentElement);
+};
+
 // Componente CanvasElement (elemento individual en canvas)
 function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDuplicate, onAddToContainer, onMoveToContainer, selectedElement, viewportMode, onUpdateElement, onAddElement, onAddElementAtIndex, onReorder, allElements, isNested = false, parentId = null }) {
   const [isDragging, setIsDragging] = useState(false);
@@ -109,7 +121,8 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
       const handleContainerDragOver = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.dataTransfer.dropEffect = 'copy';
+        // Forzar dropEffect para permitir el drop
+        e.dataTransfer.dropEffect = e.dataTransfer.effectAllowed === 'move' ? 'move' : 'copy';
         setIsDragOver(true);
         return false;
       };
@@ -128,13 +141,21 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         
         try {
           const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+          
           if (data.type === 'panel-element') {
+            // Elemento nuevo desde el panel lateral
             if (onAddToContainer) onAddToContainer(element.id, data.element);
           } else if (data.type === 'canvas-element') {
-            if (onMoveToContainer) onMoveToContainer(data.id, element.id);
+            // Elemento existente siendo movido
+            // Evitar mover un elemento a sí mismo o a sus propios hijos
+            if (data.id !== element.id && !isElementChild(element, data.id, allElements)) {
+              if (onMoveToContainer) {
+                onMoveToContainer(data.id, element.id);
+              }
+            }
           }
         } catch (error) {
-          // Error silencioso
+          console.error('Error in container drop:', error);
         }
       };
 
@@ -216,7 +237,14 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
   };
 
   const handleDragStart = (e) => {
-    const dragData = { type: 'canvas-element', id: element.id, index };
+    e.stopPropagation(); // ¡CRÍTICO! Detener propagación para evitar arrastrar contenedores padre
+    
+    const dragData = { 
+      type: 'canvas-element', 
+      id: element.id, 
+      index,
+      parentId: parentId // Incluir información del contenedor padre si existe
+    };
     setIsDragging(true);
     e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
@@ -297,16 +325,31 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
           onAddElementAtIndex(data.element, targetIndex);
         }
       } else if (data.type === 'canvas-element' && data.id !== element.id) {
-        // Reordenar elementos existentes
-        let targetIndex = index;
-        if (dragOverPosition === 'bottom') {
-          targetIndex = index + 1;
+        // Manejar movimiento de elementos existentes
+        if (element.type === ELEMENT_TYPES.CONTAINER) {
+          // Si el target es un contenedor, mover el elemento arrastrado dentro del contenedor
+          if (!isElementChild(element, data.id, allElements)) {
+            if (onMoveToContainer) {
+              onMoveToContainer(data.id, element.id);
+            }
+          }
+        } else {
+          // Reordenar elementos existentes (solo para no-contenedores del mismo nivel)
+          let targetIndex = index;
+          if (dragOverPosition === 'bottom') {
+            targetIndex = index + 1;
+          }
+          
+          // Solo reordenar si ambos elementos están en el mismo contenedor padre
+          if (data.parentId === parentId) {
+            onReorder(data.index, targetIndex);
+          }
+          // Para otros casos (mover entre contenedores), no hacer nada aquí
+          // ya que el contenedor de destino maneja el movimiento
         }
-        
-        onReorder(data.index, targetIndex);
       }
     } catch (error) {
-      // Error silencioso
+      console.error('Error in element drop:', error);
     }
   };
 
@@ -337,7 +380,8 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         }}
         onMouseLeave={(e) => {
           e.stopPropagation();
-          if (!e.currentTarget.contains(e.relatedTarget)) {
+          // Verificar que relatedTarget existe antes de usar contains
+          if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget)) {
             setShowAddButton(false);
           }
         }}
@@ -532,7 +576,6 @@ function Editor({ onExit }) {
 
   // Función para mover elementos existentes
   const moveToContainer = useCallback((elementId, containerId) => {
-    console.log('Moving element', elementId, 'to container', containerId);
 
     // Función recursiva para encontrar el elemento en cualquier nivel
     const findAndRemoveElement = (elements, targetId) => {
