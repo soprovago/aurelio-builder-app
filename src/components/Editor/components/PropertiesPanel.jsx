@@ -17,6 +17,7 @@ import {
 import GoogleFontSelector from './GoogleFontSelector';
 import FontWeightSelector from './FontWeightSelector';
 import BorderSelector from './BorderSelector';
+import BackgroundSelector from './BackgroundSelector';
 
 // Componente de sección colapsable
 function CollapsibleSection({ title, icon: Icon, children, isOpen: initialIsOpen = true }) {
@@ -984,26 +985,15 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
             {selectedElement.type === ELEMENT_TYPES.CONTAINER && (
               <>
                 <CollapsibleSection title="Fondo" icon={FiDroplet} isOpen={true}>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-2">Color de fondo</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={selectedElement.props.backgroundColor === 'transparent' ? '#ffffff' : (selectedElement.props.backgroundColor || '#ffffff')}
-                          onChange={(e) => handlePropertyChange('backgroundColor', e.target.value)}
-                          className="w-8 h-8 bg-[#2a2a2a] border border-[#3a3a3a] rounded cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          value={selectedElement.props.backgroundColor || 'transparent'}
-                          onChange={(e) => handlePropertyChange('backgroundColor', e.target.value)}
-                          className="flex-1 px-2 py-1 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-xs font-mono"
-                          placeholder="transparent"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  {(() => {
+                    console.log('📊 Rendering BackgroundSelector for element:', selectedElement.id, selectedElement.type);
+                    return (
+                      <BackgroundSelector
+                        element={selectedElement}
+                        onChange={handlePropertyChange}
+                      />
+                    );
+                  })()}
                 </CollapsibleSection>
                 
                 <CollapsibleSection title="Borde" icon={FiSquare} isOpen={false}>

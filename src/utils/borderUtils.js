@@ -28,8 +28,15 @@ export const generateBorderStyles = (props) => {
     const color1 = props.borderGradientColor1 || '#8b5cf6';
     const color2 = props.borderGradientColor2 || '#3b82f6';
     const direction = props.borderGradientDirection || '45deg';
-    // Para bordes degradados, usar el backgroundColor del elemento o un valor por defecto visible
-    const backgroundColor = props.backgroundColor || '#f8fafc';
+    // Para bordes degradados, determinar el fondo correcto (imagen o color)
+    let backgroundColor;
+    if (props.backgroundType === 'image' && props.backgroundImage) {
+      // Si hay imagen de fondo, usar un color de respaldo
+      backgroundColor = props.backgroundColor || '#f8fafc';
+    } else {
+      // Solo color
+      backgroundColor = props.backgroundColor || '#f8fafc';
+    }
     
     // console.log('🌈 Generating gradient border:', { color1, color2, direction, backgroundColor });
     

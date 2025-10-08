@@ -288,6 +288,26 @@ export const ContainerElement = ({
 }) => {
   const hasChildren = element.props.children && element.props.children.length > 0;
   
+  // Debug completo para imagen de fondo
+  console.log('🔍 Container render debug:', {
+    elementId: element.id,
+    backgroundType: element.props.backgroundType,
+    hasBackgroundImage: !!element.props.backgroundImage,
+    backgroundImageLength: element.props.backgroundImage?.length,
+    allProps: Object.keys(element.props)
+  });
+  
+  if (element.props.backgroundType === 'image' && element.props.backgroundImage) {
+    console.log('🖼️ Container background image debug:', {
+      elementId: element.id,
+      backgroundType: element.props.backgroundType,
+      backgroundImage: element.props.backgroundImage?.substring(0, 50) + '...',
+      backgroundSize: element.props.backgroundSize,
+      backgroundPosition: element.props.backgroundPosition,
+      backgroundRepeat: element.props.backgroundRepeat
+    });
+  }
+  
   // Determinar si el contenedor tiene color personalizado
   const hasCustomColor = element.props.backgroundColor && element.props.backgroundColor !== 'transparent';
   
@@ -339,6 +359,13 @@ export const ContainerElement = ({
         padding: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? borderStyles.padding : (element.props.padding || (hasChildren ? '16px' : '48px')),
         // Manejar background según el estado y tipo de borde
         backgroundColor: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? undefined : (isDragOver ? '#dbeafe' : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent'))),
+        // Aplicar imagen de fondo - condición simplificada para testing
+        ...(element.props.backgroundImage ? {
+          backgroundImage: `url(${element.props.backgroundImage})`,
+          backgroundSize: element.props.backgroundSize || 'cover',
+          backgroundPosition: element.props.backgroundPosition || 'center',
+          backgroundRepeat: element.props.backgroundRepeat || 'no-repeat'
+        } : {}),
         // Aplicar estilos de borde degradado cuando corresponda (siempre si es gradient, no solo cuando no está seleccionado)
         ...((element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? {
           background: (!isDragOver && !isSelected) ? borderStyles.background : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent'))
@@ -378,8 +405,15 @@ export const ContainerElement = ({
         <div 
           className="w-full h-full"
           style={{
-            // Fondo - usar el color correcto según el estado
-            backgroundColor: isDragOver ? '#dbeafe' : (isSelected ? (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent')) : borderStyles._innerBackground),
+            // Fondo - manejar imagen de fondo o color según el estado
+            backgroundColor: isDragOver ? '#dbeafe' : (element.props.backgroundImage ? 'transparent' : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent'))),
+            // Aplicar imagen de fondo si está configurada - simplificado
+            ...(element.props.backgroundImage && !isDragOver ? {
+              backgroundImage: `url(${element.props.backgroundImage})`,
+              backgroundSize: element.props.backgroundSize || 'cover',
+              backgroundPosition: element.props.backgroundPosition || 'center',
+              backgroundRepeat: element.props.backgroundRepeat || 'no-repeat'
+            } : {}),
             borderRadius: `calc(${borderStyles.borderRadius} - ${borderStyles._borderWidth}px)`,
             display: 'flex',
             flexDirection: element.props.flexDirection || 'column',
