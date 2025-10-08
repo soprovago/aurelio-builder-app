@@ -2,6 +2,7 @@ import React from 'react';
 import { ELEMENT_TYPES } from '../../../constants/elementTypes';
 import { FiTarget, FiInbox } from 'react-icons/fi';
 import { getFontFamily, loadGoogleFontWithStyle } from '../../../services/googleFonts';
+import { generateBorderStyles } from '../../../utils/borderUtils';
 
 // Función para renderizar elementos básicos (sin contenedores)
 export const renderBasicElement = (element) => {
@@ -287,12 +288,36 @@ export const ContainerElement = ({
 }) => {
   const hasChildren = element.props.children && element.props.children.length > 0;
   
-  
   // Determinar si el contenedor tiene color personalizado
   const hasCustomColor = element.props.backgroundColor && element.props.backgroundColor !== 'transparent';
   
   // Determinar si debe mostrar borde y fondo por defecto
   const shouldShowDefaultStyling = !hasCustomColor;
+  
+  // Generar estilos de borde usando nuestro sistema avanzado
+  const borderStyles = generateBorderStyles(element.props);
+  
+  // Debug comentado - descomentar si necesitas debuggear
+  // if (element.type === 'container' && element.props.borderType === 'gradient') {
+  //   console.log('🌈 CONTAINER GRADIENT BORDER DEBUG:', {
+  //     elementId: element.id,
+  //     borderType: element.props.borderType,
+  //     generatedStyles: borderStyles
+  //   });
+  // }
+  
+  // Determinar el borde final (priorizar estados de UI sobre bordes personalizados)
+  let finalBorder;
+  if (isDragOver) {
+    finalBorder = '3px solid #3b82f6';
+  } else if (isSelected) {
+    finalBorder = '2px solid #8b5cf6';
+  } else if (shouldShowDefaultStyling && !element.props.borderType) {
+    finalBorder = '1px dotted #cbd5e1';
+  } else {
+    // Usar el sistema de bordes avanzado
+    finalBorder = borderStyles.border || 'none';
+  }
 
   return (
     <div
@@ -310,11 +335,16 @@ export const ContainerElement = ({
           : 'hover:shadow-md z-auto'
       }`}
       style={{
-        minHeight: element.props.minHeight || (hasChildren ? '120px' : '200px'),
-        padding: element.props.padding || (hasChildren ? '16px' : '48px'),
-        backgroundColor: isDragOver ? '#dbeafe' : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent')),
-        border: isDragOver ? '3px solid #3b82f6' : (isSelected ? '2px solid #8b5cf6' : (shouldShowDefaultStyling ? '1px dotted #cbd5e1' : element.props.border || 'none')),
-        borderRadius: element.props.borderRadius || '0px',
+        minHeight: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? 'auto' : (element.props.minHeight || (hasChildren ? '120px' : '200px')),
+        padding: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? borderStyles.padding : (element.props.padding || (hasChildren ? '16px' : '48px')),
+        // Manejar background según el estado y tipo de borde
+        backgroundColor: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? undefined : (isDragOver ? '#dbeafe' : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent'))),
+        // Aplicar estilos de borde degradado cuando corresponda (siempre si es gradient, no solo cuando no está seleccionado)
+        ...((element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? {
+          background: (!isDragOver && !isSelected) ? borderStyles.background : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent'))
+        } : {}),
+        border: finalBorder,
+        borderRadius: borderStyles.borderRadius || element.props.borderRadius || '0px',
         display: 'flex',
         flexDirection: element.props.flexDirection || 'column',
         alignItems: element.props.alignItems || (hasChildren ? 'stretch' : 'center'),
@@ -343,39 +373,93 @@ export const ContainerElement = ({
         </div>
       )}
       
-      {/* Contenido del contenedor */}
-      {hasChildren ? (
+      {/* Contenido del contenedor - con div interno si es borde degradado */}
+      {(element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? (
         <div 
-          className={`w-full ${
-            (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') 
-              ? 'horizontal-container' 
-              : 'vertical-container'
-          }`}
-          data-child-count={element.props.children?.length || 0}
+          className="w-full h-full"
           style={{
+            // Fondo - usar el color correcto según el estado
+            backgroundColor: isDragOver ? '#dbeafe' : (isSelected ? (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent')) : borderStyles._innerBackground),
+            borderRadius: `calc(${borderStyles.borderRadius} - ${borderStyles._borderWidth}px)`,
             display: 'flex',
             flexDirection: element.props.flexDirection || 'column',
-            alignItems: element.props.alignItems || 'stretch',
-            justifyContent: element.props.justifyContent || 'flex-start',
+            alignItems: element.props.alignItems || (hasChildren ? 'stretch' : 'center'),
+            justifyContent: element.props.justifyContent || (hasChildren ? 'flex-start' : 'center'),
             flexWrap: element.props.flexWrap || 'nowrap',
             gap: element.props.gap || '16px',
-            minHeight: (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') ? '150px' : 'auto'
+            padding: element.props.padding || (hasChildren ? '16px' : '48px'),
+            minHeight: element.props.minHeight || (hasChildren ? '120px' : '200px'),
+            // Añadir transición suave para evitar el efecto 'zoom'
+            transition: 'all 0.2s ease-in-out'
           }}
         >
-          {children}
-        </div>
-      ) : (
-        <div className="text-center w-full h-full flex flex-col items-center justify-center relative z-10">
-          {!isDragOver && (
-            <>
+          {hasChildren ? (
+            <div 
+              className={`w-full ${
+                (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') 
+                  ? 'horizontal-container' 
+                  : 'vertical-container'
+              }`}
+              data-child-count={element.props.children?.length || 0}
+              style={{
+                display: 'flex',
+                flexDirection: element.props.flexDirection || 'column',
+                alignItems: element.props.alignItems || 'stretch',
+                justifyContent: element.props.justifyContent || 'flex-start',
+                flexWrap: element.props.flexWrap || 'nowrap',
+                gap: element.props.gap || '16px',
+                minHeight: (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') ? '150px' : 'auto'
+              }}
+            >
+              {children}
+            </div>
+          ) : (
+            <div className="text-center w-full h-full flex flex-col items-center justify-center relative z-10">
               <div className="w-16 h-16 rounded-xl bg-gray-200 flex items-center justify-center mb-4">
                 <FiInbox className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-bold text-gray-600 mb-1">Contenedor Vacío</h3>
               <p className="text-xs text-gray-500">Arrastra cualquier elemento</p>
-            </>
+            </div>
           )}
         </div>
+      ) : (
+        // Contenedor normal sin borde degradado
+        <>
+          {hasChildren ? (
+            <div 
+              className={`w-full ${
+                (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') 
+                  ? 'horizontal-container' 
+                  : 'vertical-container'
+              }`}
+              data-child-count={element.props.children?.length || 0}
+              style={{
+                display: 'flex',
+                flexDirection: element.props.flexDirection || 'column',
+                alignItems: element.props.alignItems || 'stretch',
+                justifyContent: element.props.justifyContent || 'flex-start',
+                flexWrap: element.props.flexWrap || 'nowrap',
+                gap: element.props.gap || '16px',
+                minHeight: (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') ? '150px' : 'auto'
+              }}
+            >
+              {children}
+            </div>
+          ) : (
+            <div className="text-center w-full h-full flex flex-col items-center justify-center relative z-10">
+              {!isDragOver && (
+                <>
+                  <div className="w-16 h-16 rounded-xl bg-gray-200 flex items-center justify-center mb-4">
+                    <FiInbox className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-600 mb-1">Contenedor Vacío</h3>
+                  <p className="text-xs text-gray-500">Arrastra cualquier elemento</p>
+                </>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

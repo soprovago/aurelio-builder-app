@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fi';
 import GoogleFontSelector from './GoogleFontSelector';
 import FontWeightSelector from './FontWeightSelector';
+import BorderSelector from './BorderSelector';
 
 // Componente de sección colapsable
 function CollapsibleSection({ title, icon: Icon, children, isOpen: initialIsOpen = true }) {
@@ -38,7 +39,7 @@ function CollapsibleSection({ title, icon: Icon, children, isOpen: initialIsOpen
         )}
       </button>
       {isOpen && (
-        <div className="p-4 pt-0 border-t border-[#2a2a2a]">
+        <div className="p-4 border-t border-[#2a2a2a]">
           {children}
         </div>
       )}
@@ -64,6 +65,16 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
 
   const handlePropertyChange = (property, value) => {
     console.log(`Updating ${property} to:`, value, 'Current element:', selectedElement);
+    
+    // Debug específico para borderType
+    if (property === 'borderType') {
+      console.log('🚨 BORDER TYPE CHANGE:', {
+        from: selectedElement.props.borderType,
+        to: value,
+        elementId: selectedElement.id
+      });
+    }
+    
     const updatedElement = {
       ...selectedElement,
       props: {
@@ -72,6 +83,12 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
       },
     };
     console.log('Updated element:', updatedElement);
+    
+    // Debug específico para verificar que borderType se guardó
+    if (property === 'borderType') {
+      console.log('✅ BorderType in updated element:', updatedElement.props.borderType);
+    }
+    
     onUpdateElement(updatedElement);
   };
   
@@ -990,28 +1007,10 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                 </CollapsibleSection>
                 
                 <CollapsibleSection title="Borde" icon={FiSquare} isOpen={false}>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-2">Borde</label>
-                      <input
-                        type="text"
-                        value={selectedElement.props.border || 'none'}
-                        onChange={(e) => handlePropertyChange('border', e.target.value)}
-                        className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-2 py-1 text-white text-xs font-mono"
-                        placeholder="1px solid #ccc"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-2">Radio del borde</label>
-                      <input
-                        type="text"
-                        value={selectedElement.props.borderRadius || '0px'}
-                        onChange={(e) => handlePropertyChange('borderRadius', e.target.value)}
-                        className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-2 py-1 text-white text-xs"
-                        placeholder="8px"
-                      />
-                    </div>
-                  </div>
+                  <BorderSelector
+                    element={selectedElement}
+                    onChange={handlePropertyChange}
+                  />
                 </CollapsibleSection>
               </>
             )}
