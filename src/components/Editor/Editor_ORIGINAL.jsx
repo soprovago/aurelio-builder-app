@@ -38,15 +38,14 @@ import { renderBasicElement, ContainerElement } from './utils/elementRenderer';
 import { useCollisionDetection } from './hooks/useCollisionDetection';
 import CollisionDebugger from './components/CollisionDebugger';
 import ContainerReorderControls from './components/ContainerReorderControls';
-import ContainerVisualIndicators from './components/ContainerVisualIndicators';
 import QuickLayoutControls from './components/QuickLayoutControls';
 import { FlexibleChildWrapper } from './components/FlexibleChildWrapper';
 import EasyLayoutMode from './components/EasyLayoutMode';
 
 // Constantes de estilo
 const CONTROL_STYLES = {
-  button: "text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 p-1 transition-colors",
-  deleteButton: "text-red-400 hover:text-red-300 hover:bg-red-500/20 p-1 transition-colors",
+  button: "text-gray-300 hover:text-gray-200 hover:bg-gray-500/20 p-1 transition-colors",
+  deleteButton: "text-gray-300 hover:text-gray-200 hover:bg-gray-500/20 p-1 transition-colors",
   menuButton: "text-gray-400 hover:text-gray-300 hover:bg-gray-500/20 p-1 transition-colors",
   controlsContainer: "flex items-center bg-black/80 backdrop-blur-sm rounded-md border border-gray-600/50 shadow-lg overflow-hidden"
 };
@@ -481,9 +480,9 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
                   onDuplicate(element, parentId);
                 }}
                 className={CONTROL_STYLES.button}
-                title="Duplicar"
+                title="Agregar elemento"
               >
-                <FiCopy className="w-3 h-3" />
+                <FiPlus className="w-3 h-3" />
               </button>
               
               <button
@@ -518,18 +517,13 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
           <div className="canvas-overlay absolute inset-0 bg-gradient-to-br from-[#8b5cf6] to-[#ec4899] pointer-events-none rounded-lg" />
         </div>
         
-        {/* Indicadores visuales para contenedores */}
-        <ContainerVisualIndicators 
-          element={element}
-          isSelected={isSelected}
-        />
-        
         {/* Controles rápidos de layout para contenedores */}
         <QuickLayoutControls
           selectedElement={isSelected ? element : null}
           onUpdateElement={onUpdateElement}
           position="floating"
         />
+        
         
         {/* Botón de añadir contenedor (solo para contenedores) */}
         {element.type === ELEMENT_TYPES.CONTAINER && showAddButton && (

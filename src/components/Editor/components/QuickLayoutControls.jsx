@@ -48,7 +48,7 @@ function QuickLayoutControls({
     {
       id: 'vertical',
       name: 'Vertical',
-      icon: <FiArrowDown className="w-4 h-4" />,
+      icon: <FiArrowDown className="w-3 h-3" />,
       props: {
         flexDirection: 'column',
         alignItems: 'stretch',
@@ -58,7 +58,7 @@ function QuickLayoutControls({
     {
       id: 'horizontal',
       name: 'Horizontal',
-      icon: <FiArrowRight className="w-4 h-4" />,
+      icon: <FiArrowRight className="w-3 h-3" />,
       props: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -68,7 +68,7 @@ function QuickLayoutControls({
     {
       id: 'grid',
       name: 'Grid',
-      icon: <FiGrid className="w-4 h-4" />,
+      icon: <FiGrid className="w-3 h-3" />,
       props: {
         flexDirection: 'row',
         alignItems: 'stretch',
@@ -79,7 +79,7 @@ function QuickLayoutControls({
     {
       id: 'center',
       name: 'Centrado',
-      icon: <FiAlignCenter className="w-4 h-4" />,
+      icon: <FiAlignCenter className="w-3 h-3" />,
       props: {
         flexDirection: 'column',
         alignItems: 'center',
@@ -92,19 +92,19 @@ function QuickLayoutControls({
   const alignmentControls = [
     {
       id: 'left',
-      icon: <FiAlignLeft className="w-3 h-3" />,
+      icon: <FiAlignLeft className="w-2.5 h-2.5" />,
       title: 'Alinear izquierda',
       props: { alignItems: 'flex-start', justifyContent: 'flex-start' }
     },
     {
       id: 'center',
-      icon: <FiAlignCenter className="w-3 h-3" />,
+      icon: <FiAlignCenter className="w-2.5 h-2.5" />,
       title: 'Centrar',
       props: { alignItems: 'center', justifyContent: 'center' }
     },
     {
       id: 'right',
-      icon: <FiAlignRight className="w-3 h-3" />,
+      icon: <FiAlignRight className="w-2.5 h-2.5" />,
       title: 'Alinear derecha',
       props: { alignItems: 'flex-end', justifyContent: 'flex-end' }
     }
@@ -190,16 +190,16 @@ function QuickLayoutControls({
   // Versión flotante (overlay sobre el elemento seleccionado)
   return (
     <div className={`absolute -top-16 left-0 z-50 ${className}`}>
-      <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-xl p-3 flex items-center gap-2 animate-scale-in">
+      <div className="bg-[#1a1a1a]/95 backdrop-blur-sm border border-[#2a2a2a] rounded-lg shadow-xl p-2 flex items-center gap-1.5 animate-scale-in">
         {/* Presets principales */}
         {layoutPresets.slice(0, 3).map(preset => (
           <button
             key={preset.id}
             onClick={() => updateLayout(preset.props)}
-            className={`p-2 rounded-lg transition-all ${
+            className={`p-1.5 rounded transition-all ${
               currentLayout?.id === preset.id
                 ? 'bg-purple-600 text-white shadow-lg'
-                : 'bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-600'
+                : 'bg-[#2a2a2a] text-gray-300 hover:bg-purple-600 hover:text-white'
             }`}
             title={preset.name}
           >
@@ -208,14 +208,14 @@ function QuickLayoutControls({
         ))}
 
         {/* Separador */}
-        <div className="w-px h-6 bg-gray-300" />
+        <div className="w-px h-6 bg-[#3a3a3a]" />
 
         {/* Controles de alineación rápida */}
         {alignmentControls.map(control => (
           <button
             key={control.id}
             onClick={() => updateLayout(control.props)}
-            className="p-1.5 rounded text-gray-600 hover:bg-purple-100 hover:text-purple-600 transition-colors"
+            className="p-1 rounded text-gray-300 hover:bg-purple-600 hover:text-white transition-colors"
             title={control.title}
           >
             {control.icon}
@@ -223,7 +223,7 @@ function QuickLayoutControls({
         ))}
 
         {/* Separador */}
-        <div className="w-px h-6 bg-gray-300" />
+        <div className="w-px h-6 bg-[#3a3a3a]" />
 
         {/* Controles de espaciado rápido */}
         <div className="flex items-center gap-1">
@@ -232,10 +232,10 @@ function QuickLayoutControls({
             <button
               key={gap}
               onClick={() => updateLayout({ gap })}
-              className={`px-2 py-1 text-xs rounded transition-colors ${
+              className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
                 props.gap === gap
                   ? 'bg-purple-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-purple-100'
+                  : 'bg-[#2a2a2a] text-gray-300 hover:bg-purple-600 hover:text-white'
               }`}
               title={`Gap: ${gap}`}
             >
@@ -248,7 +248,7 @@ function QuickLayoutControls({
         {/* Botón de configuración avanzada */}
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="p-1.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+          className="p-1.5 rounded text-gray-300 hover:text-white hover:bg-[#2a2a2a] transition-colors"
           title="Configuración avanzada"
         >
           <FiRotateCcw className="w-3 h-3" />
@@ -257,13 +257,13 @@ function QuickLayoutControls({
 
       {/* Panel avanzado desplegable */}
       {showAdvanced && (
-        <div className="absolute top-full left-0 mt-2 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-xl p-4 min-w-[280px] animate-slide-up">
-          <h5 className="font-medium text-gray-800 mb-3 text-sm">Configuración Avanzada</h5>
+        <div className="absolute top-full left-0 mt-2 bg-[#1a1a1a]/95 backdrop-blur-sm border border-[#2a2a2a] rounded-xl shadow-xl p-4 min-w-[280px] animate-slide-up">
+          <h5 className="font-medium text-white mb-3 text-sm">Configuración Avanzada</h5>
           
           <div className="space-y-3">
             {/* Flex Wrap */}
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Envoltura</label>
+              <label className="block text-xs text-gray-400 mb-1">Envoltura</label>
               <div className="flex gap-1">
                 {['nowrap', 'wrap', 'wrap-reverse'].map(wrap => (
                   <button
@@ -272,7 +272,7 @@ function QuickLayoutControls({
                     className={`px-3 py-1 text-xs rounded transition-colors ${
                       props.flexWrap === wrap
                         ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-purple-100'
+                        : 'bg-[#2a2a2a] text-gray-300 hover:bg-purple-600 hover:text-white'
                     }`}
                   >
                     {wrap}
@@ -283,7 +283,7 @@ function QuickLayoutControls({
 
             {/* Justify Content */}
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Distribución</label>
+              <label className="block text-xs text-gray-400 mb-1">Distribución</label>
               <div className="grid grid-cols-2 gap-1">
                 {[
                   ['flex-start', 'Inicio'],
@@ -299,7 +299,7 @@ function QuickLayoutControls({
                     className={`px-2 py-1 text-xs rounded transition-colors ${
                       props.justifyContent === value
                         ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-purple-100'
+                        : 'bg-[#2a2a2a] text-gray-300 hover:bg-purple-600 hover:text-white'
                     }`}
                   >
                     {label}
