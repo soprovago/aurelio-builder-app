@@ -1,6 +1,7 @@
 import React from 'react';
 import { ELEMENT_TYPES } from '../../../constants/elementTypes';
 import { FiTarget, FiInbox } from 'react-icons/fi';
+import { getFontFamily } from '../../../services/googleFonts';
 
 // Función para renderizar elementos básicos (sin contenedores)
 export const renderBasicElement = (element) => {
@@ -11,6 +12,8 @@ export const renderBasicElement = (element) => {
           style={{
             color: element.props.color,
             fontSize: element.props.fontSize,
+            fontFamily: getFontFamily(element.props.fontFamily || 'default'),
+            fontWeight: element.props.fontWeight,
             textAlign: element.props.alignment,
           }}
         >
@@ -23,6 +26,8 @@ export const renderBasicElement = (element) => {
           style={{
             color: element.props.color,
             fontSize: element.props.fontSize,
+            fontFamily: getFontFamily(element.props.fontFamily || 'default'),
+            fontWeight: element.props.fontWeight,
             textAlign: element.props.alignment,
           }}
         >

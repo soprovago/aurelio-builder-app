@@ -14,6 +14,8 @@ import {
   FiEye,
   FiSettings
 } from 'react-icons/fi';
+import GoogleFontSelector from './GoogleFontSelector';
+import FontWeightSelector from './FontWeightSelector';
 
 // Componente de sección colapsable
 function CollapsibleSection({ title, icon: Icon, children, isOpen: initialIsOpen = true }) {
@@ -1012,8 +1014,76 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
               </>
             )}
             
+            {/* ENCABEZADOS Y TEXTO - Estilos */}
+            {(selectedElement.type === ELEMENT_TYPES.HEADING || selectedElement.type === ELEMENT_TYPES.TEXT) && (
+              <>
+                <CollapsibleSection title="Tipografía" icon={FiType} isOpen={true}>
+                  <div className="space-y-4">
+                    {/* Selector de tipografía para encabezados */}
+                    {selectedElement.type === ELEMENT_TYPES.HEADING && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-400 mb-2">Tipografía</label>
+                          <GoogleFontSelector
+                            value={selectedElement.props.fontFamily || 'default'}
+                            onChange={(fontFamily) => handlePropertyChange('fontFamily', fontFamily)}
+                            previewText={selectedElement.props.text ? selectedElement.props.text.substring(0, 3) : 'Abc'}
+                            showCategory={false}
+                          />
+                        </div>
+                        
+                        <div>
+                          <FontWeightSelector
+                            fontFamily={selectedElement.props.fontFamily || 'default'}
+                            value={selectedElement.props.fontWeight || '400'}
+                            onChange={(fontWeight) => handlePropertyChange('fontWeight', fontWeight)}
+                          />
+                        </div>
+                      </>
+                    )}
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-2">Color del texto</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={selectedElement.props.color || '#000000'}
+                          onChange={(e) => handlePropertyChange('color', e.target.value)}
+                          className="w-8 h-8 bg-[#2a2a2a] border border-[#3a3a3a] rounded cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={selectedElement.props.color || '#000000'}
+                          onChange={(e) => handlePropertyChange('color', e.target.value)}
+                          className="flex-1 px-2 py-1 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-xs font-mono"
+                          placeholder="#000000"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-2">Tamaño de fuente</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="8"
+                          max="72"
+                          value={parseInt(selectedElement.props.fontSize || '16')}
+                          onChange={(e) => handlePropertyChange('fontSize', e.target.value + 'px')}
+                          className="flex-1 accent-purple-600"
+                        />
+                        <span className="text-xs text-gray-400 min-w-[40px]">
+                          {selectedElement.props.fontSize || '16px'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+              </>
+            )}
+            
             {/* Mensaje para otros elementos */}
-            {selectedElement.type !== ELEMENT_TYPES.CONTAINER && (
+            {selectedElement.type !== ELEMENT_TYPES.CONTAINER && selectedElement.type !== ELEMENT_TYPES.HEADING && selectedElement.type !== ELEMENT_TYPES.TEXT && (
               <div className="text-center py-8">
                 <FiDroplet className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                 <p className="text-gray-400 text-sm">Propiedades de estilo</p>

@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import EditorPage from './pages/EditorPage';
 import DashboardPage from './pages/DashboardPage';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { useEffect } from 'react';
+import { preloadPopularFonts } from './services/googleFonts';
 
 // Protected Route component
 function ProtectedRoute({ children }) {
@@ -64,6 +66,11 @@ function PublicRoute({ children }) {
 }
 
 function App() {
+  // Precargar tipografías populares de Google Fonts
+  useEffect(() => {
+    preloadPopularFonts();
+  }, []);
+
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <AuthProvider>

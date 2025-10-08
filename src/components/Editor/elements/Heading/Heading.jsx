@@ -3,8 +3,9 @@
  * Elemento de encabezado con niveles H1-H6 y propiedades específicas
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiType, FiEdit3 } from 'react-icons/fi';
+import { loadGoogleFont, getFontFamily } from '../../../../services/googleFonts';
 
 function Heading({ 
   isSelected = false,
@@ -16,7 +17,7 @@ function Heading({
   level = 1,
   color = '#000000',
   fontSize = '32px',
-  fontFamily = 'Inter',
+  fontFamily = 'default',
   fontWeight = '600',
   lineHeight = '1.2',
   textAlign = 'left',
@@ -36,6 +37,21 @@ function Heading({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingText, setEditingText] = useState(text);
+
+  // Cargar Google Font si es necesario
+  useEffect(() => {
+    if (fontFamily && fontFamily !== 'default') {
+      const weightValue = parseInt(fontWeight) || 400;
+      // Cargar peso específico más algunos comunes para mejor UX
+      const weightsToLoad = [weightValue];
+      
+      // Agregar pesos comunes si no están incluidos
+      if (!weightsToLoad.includes(400)) weightsToLoad.push(400);
+      if (!weightsToLoad.includes(700)) weightsToLoad.push(700);
+      
+      loadGoogleFont(fontFamily, weightsToLoad);
+    }
+  }, [fontFamily, fontWeight]);
 
   // Tamaños por defecto según el nivel del heading
   const defaultFontSizes = {
@@ -59,7 +75,7 @@ function Heading({
   const computedStyles = {
     color,
     fontSize: fontSize || defaultFontSizes[level],
-    fontFamily,
+    fontFamily: getFontFamily(fontFamily),
     fontWeight: fontWeight || defaultFontWeights[level],
     lineHeight,
     textAlign,
@@ -256,7 +272,7 @@ Heading.elementConfig = {
     level: 1,
     color: '#000000',
     fontSize: '32px',
-    fontFamily: 'Inter',
+    fontFamily: 'default',
     fontWeight: '600',
     lineHeight: '1.2',
     textAlign: 'left',
