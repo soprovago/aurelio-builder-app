@@ -63,6 +63,7 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
   }
 
   const handlePropertyChange = (property, value) => {
+    console.log(`Updating ${property} to:`, value, 'Current element:', selectedElement);
     const updatedElement = {
       ...selectedElement,
       props: {
@@ -70,6 +71,7 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
         [property]: value,
       },
     };
+    console.log('Updated element:', updatedElement);
     onUpdateElement(updatedElement);
   };
   

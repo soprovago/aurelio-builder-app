@@ -1,28 +1,43 @@
 import React from 'react';
 import { ELEMENT_TYPES } from '../../../constants/elementTypes';
 import { FiTarget, FiInbox } from 'react-icons/fi';
-import { getFontFamily } from '../../../services/googleFonts';
+import { getFontFamily, loadGoogleFontWithStyle } from '../../../services/googleFonts';
 
 // Función para renderizar elementos básicos (sin contenedores)
 export const renderBasicElement = (element) => {
   switch (element.type) {
     case ELEMENT_TYPES.HEADING:
-      console.log('Rendering HEADING with fontStyle:', element.props.fontStyle);
+      // Debug simple
+      const currentFontStyle = element.props.fontStyle || 'normal';
+      console.log('HEADING fontStyle:', currentFontStyle, 'Element:', element.id);
+      
+      // Cargar fuente italic si es necesario
+      if (element.props.fontFamily && element.props.fontFamily !== 'default' && currentFontStyle === 'italic') {
+        loadGoogleFontWithStyle(
+          element.props.fontFamily, 
+          [parseInt(element.props.fontWeight || '600')], 
+          'italic'
+        ).catch(error => console.error('Error cargando fuente italic:', error));
+      }
+      
       return (
-        <div
-          style={{
-            color: element.props.color,
-            fontSize: element.props.fontSize,
-            fontFamily: getFontFamily(element.props.fontFamily || 'default'),
-            fontWeight: element.props.fontWeight,
-            fontStyle: element.props.fontStyle || 'normal',
-            textAlign: element.props.alignment,
-            margin: element.props.margin || '0px',
-            padding: element.props.padding || '0px',
-          }}
-        >
-          <h1>{element.props.text}</h1>
-        </div>
+        <h1 style={{
+          color: element.props.color || '#000000',
+          fontSize: element.props.fontSize || '32px',
+          fontFamily: getFontFamily(element.props.fontFamily || 'default'),
+          fontWeight: element.props.fontWeight || '600',
+          fontStyle: currentFontStyle,
+          textAlign: element.props.alignment || 'left',
+          margin: element.props.margin || '0px',
+          padding: element.props.padding || '0px',
+          // Aplicar transform para forzar italic si es necesario
+          ...(currentFontStyle === 'italic' && {
+            fontStyle: 'italic',
+            transform: 'skew(-15deg, 0deg)' // Fallback visual
+          })
+        }}>
+          {element.props.text}
+        </h1>
       );
     case ELEMENT_TYPES.TEXT:
       return (

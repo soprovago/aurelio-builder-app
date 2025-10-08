@@ -192,9 +192,110 @@ export const getFontFamily = (fontName) => {
  * Cargar un peso específico de una fuente (útil cuando se cambia el peso)
  * @param {string} fontName - Nombre de la tipografía
  * @param {number} weight - Peso específico a cargar
+ * @param {string} style - Estilo de fuente ('normal' o 'italic')
  */
-export const loadFontWeight = (fontName, weight) => {
-  return loadGoogleFont(fontName, [weight]);
+export const loadFontWeight = (fontName, weight, style = 'normal') => {
+  return loadGoogleFontWithStyle(fontName, [weight], style);
+};
+
+/**
+ * Carga una tipografía de Google Fonts con soporte para estilos (normal/italic)
+ * @param {string} fontName - Nombre de la tipografía
+ * @param {number[]} weights - Pesos de fuente a cargar
+ * @param {string} style - Estilo: 'normal' o 'italic'
+ */
+export const loadGoogleFontWithStyle = (fontName, weights = [400], style = 'normal') => {
+  // Crear una clave única para el cache que incluya el estilo
+  const cacheKey = `${fontName}-${style}`;
+  const loadedWeights = loadedFonts.get(cacheKey) || new Set();
+  const newWeights = weights.filter(weight => !loadedWeights.has(weight));
+  
+  // Si todos los pesos ya están cargados, no hacer nada
+  if (newWeights.length === 0) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    try {
+      // Encontrar la configuración de la fuente
+      const fontConfig = GOOGLE_FONTS.find(font => font.name === fontName);
+      
+      if (!fontConfig) {
+        console.warn(`Fuente ${fontName} no encontrada en la configuración`);
+        resolve();
+        return;
+      }
+
+      // Filtrar solo los pesos disponibles para esta fuente
+      const availableWeights = newWeights.filter(weight => 
+        fontConfig.weights.includes(weight)
+      );
+      
+      if (availableWeights.length === 0) {
+        resolve();
+        return;
+      }
+      
+      const weightsToLoad = availableWeights;
+      
+      // Crear el nombre de la fuente para Google Fonts API
+      const fontNameForUrl = fontName.replace(/\s+/g, '+');
+      
+      // Construir parámetros para pesos con estilo
+      let weightsParam;
+      if (style === 'italic') {
+        // Para italic, especificar tanto normal como italic para cada peso
+        const weightParams = weightsToLoad.flatMap(weight => [`${weight}`, `1,${weight}`]);
+        weightsParam = weightParams.join(';');
+      } else {
+        weightsParam = weightsToLoad.join(';');
+      }
+      
+      // URL de Google Fonts con soporte para italic
+      const googleFontUrl = `https://fonts.googleapis.com/css2?family=${fontNameForUrl}:ital,wght@${weightsParam}&display=swap`;
+      
+      // Verificar si ya existe un link con esta URL exacta
+      const existingLink = document.querySelector(`link[href="${googleFontUrl}"]`);
+      if (existingLink) {
+        const currentWeights = loadedFonts.get(cacheKey) || new Set();
+        weightsToLoad.forEach(weight => currentWeights.add(weight));
+        loadedFonts.set(cacheKey, currentWeights);
+        resolve();
+        return;
+      }
+      
+      // Crear elemento link para cargar la fuente
+      const link = document.createElement('link');
+      link.href = googleFontUrl;
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.setAttribute('data-font-family', fontName);
+      link.setAttribute('data-font-style', style);
+      link.setAttribute('data-font-weights', weightsToLoad.join(','));
+      
+      // Eventos de carga
+      link.onload = () => {
+        const currentWeights = loadedFonts.get(cacheKey) || new Set();
+        weightsToLoad.forEach(weight => currentWeights.add(weight));
+        loadedFonts.set(cacheKey, currentWeights);
+        
+        console.log(`✅ Google Font cargada: ${fontName} ${style} (pesos: ${weightsToLoad.join(', ')})`);
+        resolve();
+      };
+      
+      link.onerror = (error) => {
+        console.error(`❌ Error cargando Google Font: ${fontName} ${style}`, error);
+        resolve();
+      };
+      
+      // Agregar al head del documento
+      document.head.appendChild(link);
+      
+    } catch (error) {
+      console.error(`Error al cargar Google Font ${fontName} ${style}:`, error);
+      resolve();
+    }
+  });
 };
 
 export const getFontsByCategory = () => {
