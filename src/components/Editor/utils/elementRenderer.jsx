@@ -7,6 +7,7 @@ import { getFontFamily } from '../../../services/googleFonts';
 export const renderBasicElement = (element) => {
   switch (element.type) {
     case ELEMENT_TYPES.HEADING:
+      console.log('Rendering HEADING with fontStyle:', element.props.fontStyle);
       return (
         <div
           style={{
@@ -14,7 +15,10 @@ export const renderBasicElement = (element) => {
             fontSize: element.props.fontSize,
             fontFamily: getFontFamily(element.props.fontFamily || 'default'),
             fontWeight: element.props.fontWeight,
+            fontStyle: element.props.fontStyle || 'normal',
             textAlign: element.props.alignment,
+            margin: element.props.margin || '0px',
+            padding: element.props.padding || '0px',
           }}
         >
           <h1>{element.props.text}</h1>
@@ -28,7 +32,10 @@ export const renderBasicElement = (element) => {
             fontSize: element.props.fontSize,
             fontFamily: getFontFamily(element.props.fontFamily || 'default'),
             fontWeight: element.props.fontWeight,
+            fontStyle: element.props.fontStyle || 'normal',
             textAlign: element.props.alignment,
+            margin: element.props.margin || '0px',
+            padding: element.props.padding || '0px',
           }}
         >
           {element.props.text}
@@ -299,6 +306,7 @@ export const ContainerElement = ({
         justifyContent: element.props.justifyContent || (hasChildren ? 'flex-start' : 'center'),
         flexWrap: element.props.flexWrap || 'nowrap',
         gap: element.props.gap || '16px',
+        margin: element.props.margin || '0px',
         cursor: isDragOver ? 'copy' : 'default',
         position: 'relative',
         // Mejorar área de detección durante drag

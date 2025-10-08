@@ -126,7 +126,7 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
             {elements.length > 0 && (
               <>
                 {/* Elementos del canvas */}
-                <div className="space-y-4 mb-8">
+                <div className="mb-8">
                   {elements.map((element, index) => (
                     <div key={element.id} className="relative">
                       {/* Indicador de inserción superior */}

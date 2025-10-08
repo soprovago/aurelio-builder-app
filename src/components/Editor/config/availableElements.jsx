@@ -30,7 +30,8 @@ export const availableElements = [
       flexWrap: 'nowrap',
       width: '100%',
       height: 'auto',
-      widthType: 'full'
+      widthType: 'full',
+      margin: '0px'
     }
   },
   {
@@ -44,6 +45,9 @@ export const availableElements = [
       alignment: 'left',
       color: '#000000',
       fontSize: '32px',
+      fontStyle: 'normal',
+      margin: '0px',
+      padding: '0px',
     }
   },
   {
@@ -56,6 +60,9 @@ export const availableElements = [
       alignment: 'left',
       color: '#333333',
       fontSize: '16px',
+      fontStyle: 'normal',
+      margin: '0px',
+      padding: '0px',
     }
   },
   {

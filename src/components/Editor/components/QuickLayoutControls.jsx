@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   FiColumns, 
   FiGrid, 
@@ -24,6 +24,29 @@ function QuickLayoutControls({
   position = "floating" // "floating" | "panel"
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [shouldShowBelow, setShouldShowBelow] = useState(false);
+  const controlsRef = useRef(null);
+
+  // Detectar si hay suficiente espacio arriba del elemento
+  useEffect(() => {
+    if (!controlsRef.current || position !== 'floating') return;
+    
+    const checkPosition = () => {
+      const rect = controlsRef.current.getBoundingClientRect();
+      const parentRect = controlsRef.current.offsetParent?.getBoundingClientRect();
+      
+      // Si está muy cerca del top del viewport (menos de 80px), mostrar abajo
+      const distanceFromTop = rect.top - (parentRect?.top || 0);
+      setShouldShowBelow(distanceFromTop < 80);
+    };
+    
+    // Verificar posición inicial
+    setTimeout(checkPosition, 100);
+    
+    // Verificar en resize
+    window.addEventListener('resize', checkPosition);
+    return () => window.removeEventListener('resize', checkPosition);
+  }, [selectedElement, position]);
 
   if (!selectedElement || selectedElement.type !== 'container') {
     return null;
@@ -189,7 +212,10 @@ function QuickLayoutControls({
 
   // Versión flotante (overlay sobre el elemento seleccionado)
   return (
-    <div className={`absolute -top-16 left-0 z-50 ${className}`}>
+    <div 
+      ref={controlsRef}
+      className={`absolute ${shouldShowBelow ? 'top-full mt-2' : '-top-16'} left-0 z-50 ${className}`}
+    >
       <div className="bg-[#1a1a1a]/95 backdrop-blur-sm border border-[#2a2a2a] rounded-lg shadow-xl p-2 flex items-center gap-1.5 animate-scale-in">
         {/* Presets principales */}
         {layoutPresets.slice(0, 3).map(preset => (

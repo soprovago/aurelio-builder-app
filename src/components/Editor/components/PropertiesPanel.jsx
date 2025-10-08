@@ -1039,6 +1039,22 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                             onChange={(fontWeight) => handlePropertyChange('fontWeight', fontWeight)}
                           />
                         </div>
+                        
+                        <div>
+                          <label className="block text-xs font-medium text-gray-400 mb-2">Estilo de tipografía</label>
+                          <select
+                            value={selectedElement.props.fontStyle || 'normal'}
+                            onChange={(e) => {
+                              console.log('Changing fontStyle to:', e.target.value);
+                              handlePropertyChange('fontStyle', e.target.value);
+                            }}
+                            className="w-full bg-[#2a2a2a] border border-[#3a3a3a] rounded px-3 py-2 text-white text-sm hover:bg-[#3a3a3a] transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          >
+                            <option value="normal">Normal</option>
+                            <option value="italic">Cursiva</option>
+                            <option value="oblique">Oblicua</option>
+                          </select>
+                        </div>
                       </>
                     )}
                     

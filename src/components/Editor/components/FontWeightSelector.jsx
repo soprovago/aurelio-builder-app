@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { FiType } from 'react-icons/fi';
 import { GOOGLE_FONTS, loadFontWeight } from '../../../services/googleFonts';
 
 /**
@@ -85,7 +84,6 @@ function FontWeightSelector({
   return (
     <div className={className}>
       <label className="block text-xs font-medium text-gray-400 mb-2">
-        <FiType className="w-3 h-3 inline mr-1" />
         Peso de la tipografía
       </label>
       
@@ -100,17 +98,6 @@ function FontWeightSelector({
           </option>
         ))}
       </select>
-      
-      {/* Preview del peso actual */}
-      <div 
-        className="mt-2 text-sm text-gray-300 transition-all"
-        style={{ 
-          fontFamily: fontFamily === 'default' ? 'system-ui, sans-serif' : `"${fontFamily}", sans-serif`,
-          fontWeight: currentValue 
-        }}
-      >
-        Texto de ejemplo - {availableWeights.find(w => w.value === currentValue)?.label.split(' - ')[1] || 'Normal'}
-      </div>
     </div>
   );
 }

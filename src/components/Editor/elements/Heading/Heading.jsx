@@ -27,7 +27,7 @@ function Heading({
   textTransform = 'none',
   // Base props
   padding = '0px',
-  margin = '0px 0px 16px 0px',
+  margin = '0px',
   backgroundColor = 'transparent',
   borderRadius = '0px',
   border = 'none',
@@ -281,7 +281,7 @@ Heading.elementConfig = {
     letterSpacing: 'normal',
     textTransform: 'none',
     padding: '0px',
-    margin: '0px 0px 16px 0px',
+    margin: '0px',
     backgroundColor: 'transparent',
     borderRadius: '0px',
     border: 'none',
