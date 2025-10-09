@@ -1,16 +1,15 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { FiDroplet, FiImage, FiUpload, FiRefreshCw, FiFolder, FiLink } from 'react-icons/fi';
+import { FiDroplet, FiImage, FiFolder, FiLink, FiEye, FiEyeOff, FiFilter, FiRefreshCw, FiUpload } from 'react-icons/fi';
 
 /**
  * Componente selector de fondo para contenedores
- * Soporta color sólido e imagen de fondo
+ * Soporta color sólido, imagen de fondo y efectos blur
  */
 function BackgroundSelector({ 
   element,
   onChange, 
   className = "" 
 }) {
-  console.log('🎨 BackgroundSelector loaded for element:', element?.id);
   
   // Determinar el tipo de fondo actual
   const currentBackgroundType = element.props.backgroundType || 'color';
@@ -25,23 +24,22 @@ function BackgroundSelector({
 
   // Manejar cambio de tipo de fondo
   const handleBackgroundTypeChange = useCallback((newType) => {
-    console.log('🎨 Changing background type to:', newType);
     setBackgroundType(newType);
     onChange('backgroundType', newType);
     
     // Limpiar propiedades del tipo anterior
     if (newType === 'color') {
-      console.log('🎨 Setting up color background');
       onChange('backgroundImage', undefined);
       onChange('backgroundSize', undefined);
       onChange('backgroundPosition', undefined);
       onChange('backgroundRepeat', undefined);
+      onChange('backgroundBlur', 0);
       // Establecer color por defecto si no existe
       if (!element.props.backgroundColor) {
         onChange('backgroundColor', '#f8fafc');
       }
     } else if (newType === 'image') {
-      console.log('🖼️ Setting up image background');
+      onChange('backgroundBlur', 0);
       // Establecer valores por defecto para imagen
       if (!element.props.backgroundSize) {
         onChange('backgroundSize', 'cover');
@@ -51,6 +49,22 @@ function BackgroundSelector({
       }
       if (!element.props.backgroundRepeat) {
         onChange('backgroundRepeat', 'no-repeat');
+      }
+      if (!element.props.backgroundOpacity) {
+        onChange('backgroundOpacity', 1);
+      }
+    } else if (newType === 'blur') {
+      // Limpiar propiedades de imagen
+      onChange('backgroundImage', undefined);
+      onChange('backgroundSize', undefined);
+      onChange('backgroundPosition', undefined);
+      onChange('backgroundRepeat', undefined);
+      // Establecer valores por defecto para blur
+      if (!element.props.backgroundBlur) {
+        onChange('backgroundBlur', 10);
+      }
+      if (!element.props.backgroundOpacity) {
+        onChange('backgroundOpacity', 0.8);
       }
     }
   }, [onChange, element.props]);
@@ -74,23 +88,18 @@ function BackgroundSelector({
     }
     
     setIsProcessingFile(true);
-    console.log('🖼️ Processing image file:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
     
     // Crear FileReader para convertir a base64
     const reader = new FileReader();
     
     reader.onload = (e) => {
       const base64URL = e.target.result;
-      console.log('🖼️ Image converted to base64, length:', base64URL.length);
-      
-      // Aplicar la imagen como fondo
       onChange('backgroundImage', base64URL);
       setImageSource('file');
       setIsProcessingFile(false);
     };
     
     reader.onerror = () => {
-      console.error('❌ Error reading image file');
       alert('Error al procesar la imagen. Por favor intenta con otro archivo.');
       setIsProcessingFile(false);
     };
@@ -128,27 +137,40 @@ function BackgroundSelector({
       <div className="flex gap-1 mb-4 bg-[#2a2a2a] rounded-lg p-1">
         <button
           onClick={() => handleBackgroundTypeChange('color')}
-          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 ${
+          className={`flex-1 flex items-center gap-2 px-2 py-2 rounded-md transition-all duration-200 text-xs ${
             backgroundType === 'color' 
               ? 'bg-purple-500 text-white' 
               : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
           }`}
         >
           <FiDroplet className="w-3 h-3" />
-          <span className="text-xs font-medium">Color</span>
+          <span className="font-medium">Color</span>
         </button>
         
         <button
           onClick={() => handleBackgroundTypeChange('image')}
-          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 ${
+          className={`flex-1 flex items-center gap-2 px-2 py-2 rounded-md transition-all duration-200 text-xs ${
             backgroundType === 'image' 
               ? 'bg-purple-500 text-white' 
               : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
           }`}
         >
           <FiImage className="w-3 h-3" />
-          <span className="text-xs font-medium">Imagen</span>
+          <span className="font-medium">Imagen</span>
         </button>
+        
+        <button
+          onClick={() => handleBackgroundTypeChange('blur')}
+          className={`flex-1 flex items-center gap-2 px-2 py-2 rounded-md transition-all duration-200 text-xs ${
+            backgroundType === 'blur' 
+              ? 'bg-purple-500 text-white' 
+              : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
+          }`}
+        >
+          <FiFilter className="w-3 h-3" />
+          <span className="font-medium">Blur</span>
+        </button>
+        
       </div>
 
       {/* Controles para fondo de color */}
@@ -172,6 +194,135 @@ function BackgroundSelector({
                 className="flex-1 px-2 py-1 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-xs font-mono"
                 placeholder="transparent"
               />
+            </div>
+          </div>
+          
+          {/* Control de opacidad del color */}
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-2">
+              Opacidad del color
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={element.props.backgroundOpacity || 1}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  onChange('backgroundOpacity', value);
+                }}
+                className="flex-1 h-2 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${((element.props.backgroundOpacity || 1) * 100)}%, #2a2a2a ${((element.props.backgroundOpacity || 1) * 100)}%, #2a2a2a 100%)`,
+                  WebkitAppearance: 'none',
+                  outline: 'none'
+                }}
+              />
+              <span className="text-xs text-gray-400 w-12">
+                {Math.round((element.props.backgroundOpacity || 1) * 100)}%
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Controla la transparencia del color de fondo
+            </p>
+          </div>
+          
+          {/* Control de efecto Blur */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-medium text-gray-400">
+                Efecto Blur (Glassmorphism)
+              </label>
+              <button
+                onClick={() => {
+                  const currentBlur = element.props.backgroundBlur || 0;
+                  onChange('backgroundBlur', currentBlur > 0 ? 0 : 8);
+                }}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                  (element.props.backgroundBlur || 0) > 0
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-[#3a3a3a] text-gray-400 hover:text-white'
+                }`}
+                title="Activar/desactivar efecto blur"
+              >
+                {(element.props.backgroundBlur || 0) > 0 ? (
+                  <><FiEye className="w-3 h-3" /><span>ON</span></>
+                ) : (
+                  <><FiEyeOff className="w-3 h-3" /><span>OFF</span></>
+                )}
+              </button>
+            </div>
+            
+            {/* Slider de intensidad del blur */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="30"
+                  step="1"
+                  value={element.props.backgroundBlur || 0}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    onChange('backgroundBlur', value);
+                  }}
+                  className="flex-1 h-3 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${((element.props.backgroundBlur || 0) / 30) * 100}%, #2a2a2a ${((element.props.backgroundBlur || 0) / 30) * 100}%, #2a2a2a 100%)`,
+                    WebkitAppearance: 'none',
+                    outline: 'none'
+                  }}
+                />
+                <input
+                  type="number"
+                  min="0"
+                  max="30"
+                  step="1"
+                  value={element.props.backgroundBlur || 0}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    onChange('backgroundBlur', Math.max(0, Math.min(30, value)));
+                  }}
+                  className="w-16 px-2 py-1 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-xs text-center"
+                />
+                <span className="text-xs text-gray-500 w-6">px</span>
+              </div>
+              
+              {/* Presets de blur */}
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-2">
+                  Presets rápidos
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { name: 'Sin blur', value: 0, desc: 'Sin desenfoque' },
+                    { name: 'Suave', value: 6, desc: 'Desenfoque ligero' },
+                    { name: 'Medio', value: 12, desc: 'Desenfoque moderado' },
+                    { name: 'Fuerte', value: 20, desc: 'Desenfoque intenso' }
+                  ].map((preset) => (
+                    <button
+                      key={preset.name}
+                      onClick={() => {
+                        onChange('backgroundBlur', preset.value);
+                      }}
+                      className={`px-2 py-2 rounded text-xs transition-colors ${
+                        (element.props.backgroundBlur || 0) === preset.value
+                          ? 'bg-purple-500 text-white'
+                          : 'bg-[#2a2a2a] text-gray-400 hover:bg-[#3a3a3a] hover:text-white'
+                      }`}
+                      title={preset.desc}
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-2">
+                  🎆 El efecto blur desenfoca lo que está detrás del contenedor, ideal para efectos glassmorphism
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -269,7 +420,6 @@ function BackgroundSelector({
                       key={index}
                       onClick={() => {
                         onChange('backgroundImage', example.url);
-                        console.log('🖼️ Applied example image:', example.url);
                       }}
                       className="group relative h-12 bg-cover bg-center rounded border border-[#3a3a3a] hover:border-purple-500 transition-colors overflow-hidden"
                       style={{ backgroundImage: `url(${example.url})` }}
@@ -407,6 +557,149 @@ function BackgroundSelector({
             </select>
           </div>
 
+          {/* Control de opacidad de la imagen */}
+          {element.props.backgroundImage && (
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-2">
+                Opacidad de la imagen
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.05"
+                  value={element.props.backgroundOpacity || 1}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    onChange('backgroundOpacity', value);
+                  }}
+                  className="flex-1 h-2 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${((element.props.backgroundOpacity || 1) * 100)}%, #2a2a2a ${((element.props.backgroundOpacity || 1) * 100)}%, #2a2a2a 100%)`,
+                    WebkitAppearance: 'none',
+                    outline: 'none'
+                  }}
+                />
+                <span className="text-xs text-gray-400 w-12">
+                  {Math.round((element.props.backgroundOpacity || 1) * 100)}%
+                </span>
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* Controles para fondo de blur */}
+      {backgroundType === 'blur' && (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-2">
+              Intensidad del Blur
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="0"
+                max="30"
+                step="1"
+                value={element.props.backgroundBlur || 10}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  onChange('backgroundBlur', value);
+                }}
+                className="flex-1 h-3 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${((element.props.backgroundBlur || 10) / 30) * 100}%, #2a2a2a ${((element.props.backgroundBlur || 10) / 30) * 100}%, #2a2a2a 100%)`,
+                  WebkitAppearance: 'none',
+                  outline: 'none'
+                }}
+              />
+              <input
+                type="number"
+                min="0"
+                max="30"
+                step="1"
+                value={element.props.backgroundBlur || 10}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  onChange('backgroundBlur', Math.max(0, Math.min(30, value)));
+                }}
+                className="w-16 px-2 py-1 bg-[#2a2a2a] border border-[#3a3a3a] rounded text-white text-xs text-center"
+              />
+              <span className="text-xs text-gray-500 w-6">px</span>
+            </div>
+          </div>
+          
+          {/* Presets de blur */}
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-2">
+              Presets de Blur
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { name: 'Vidrio', value: 8, desc: 'Efecto cristal suave' },
+                { name: 'Cristal', value: 15, desc: 'Efecto vidrio esmerilado' },
+                { name: 'Niebla', value: 22, desc: 'Desenfoque denso' },
+                { name: 'Intenso', value: 30, desc: 'Máximo desenfoque' }
+              ].map((preset) => (
+                <button
+                  key={preset.name}
+                  onClick={() => {
+                    onChange('backgroundBlur', preset.value);
+                  }}
+                  className={`px-3 py-2 rounded text-xs transition-colors ${
+                    (element.props.backgroundBlur || 10) === preset.value
+                      ? 'bg-purple-500 text-white'
+                      : 'bg-[#2a2a2a] text-gray-400 hover:bg-[#3a3a3a] hover:text-white'
+                  }`}
+                  title={preset.desc}
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Control de opacidad del blur */}
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-2">
+              Opacidad del fondo
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="0.1"
+                max="1"
+                step="0.05"
+                value={element.props.backgroundOpacity || 0.8}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  onChange('backgroundOpacity', value);
+                }}
+                className="flex-1 h-2 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${((element.props.backgroundOpacity || 0.8) * 100)}%, #2a2a2a ${((element.props.backgroundOpacity || 0.8) * 100)}%, #2a2a2a 100%)`,
+                  WebkitAppearance: 'none',
+                  outline: 'none'
+                }}
+              />
+              <span className="text-xs text-gray-400 w-12">
+                {Math.round((element.props.backgroundOpacity || 0.8) * 100)}%
+              </span>
+            </div>
+          </div>
+          
+          <div className="p-3 bg-[#2a2a2a] rounded border-l-4 border-purple-500">
+            <div className="flex items-center gap-2 mb-1">
+              <FiFilter className="w-4 h-4 text-purple-400" />
+              <span className="text-xs font-medium text-purple-400">Efecto Glassmorphism</span>
+            </div>
+            <p className="text-xs text-gray-400">
+              El blur desenfoca lo que está detrás del contenedor, creando un efecto de vidrio moderno. Perfecto para overlays y elementos flotantes.
+            </p>
+          </div>
         </div>
       )}
     </div>

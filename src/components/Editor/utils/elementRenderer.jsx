@@ -288,43 +288,11 @@ export const ContainerElement = ({
 }) => {
   const hasChildren = element.props.children && element.props.children.length > 0;
   
-  // Debug completo para imagen de fondo
-  console.log('🔍 Container render debug:', {
-    elementId: element.id,
-    backgroundType: element.props.backgroundType,
-    hasBackgroundImage: !!element.props.backgroundImage,
-    backgroundImageLength: element.props.backgroundImage?.length,
-    allProps: Object.keys(element.props)
-  });
-  
-  if (element.props.backgroundType === 'image' && element.props.backgroundImage) {
-    console.log('🖼️ Container background image debug:', {
-      elementId: element.id,
-      backgroundType: element.props.backgroundType,
-      backgroundImage: element.props.backgroundImage?.substring(0, 50) + '...',
-      backgroundSize: element.props.backgroundSize,
-      backgroundPosition: element.props.backgroundPosition,
-      backgroundRepeat: element.props.backgroundRepeat
-    });
-  }
-  
   // Determinar si el contenedor tiene color personalizado
+  
   const hasCustomColor = element.props.backgroundColor && element.props.backgroundColor !== 'transparent';
-  
-  // Determinar si debe mostrar borde y fondo por defecto
   const shouldShowDefaultStyling = !hasCustomColor;
-  
-  // Generar estilos de borde usando nuestro sistema avanzado
   const borderStyles = generateBorderStyles(element.props);
-  
-  // Debug comentado - descomentar si necesitas debuggear
-  // if (element.type === 'container' && element.props.borderType === 'gradient') {
-  //   console.log('🌈 CONTAINER GRADIENT BORDER DEBUG:', {
-  //     elementId: element.id,
-  //     borderType: element.props.borderType,
-  //     generatedStyles: borderStyles
-  //   });
-  // }
   
   // Determinar el borde final (priorizar estados de UI sobre bordes personalizados)
   let finalBorder;
@@ -338,6 +306,7 @@ export const ContainerElement = ({
     // Usar el sistema de bordes avanzado
     finalBorder = borderStyles.border || 'none';
   }
+
 
   return (
     <div
@@ -358,14 +327,49 @@ export const ContainerElement = ({
         minHeight: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? 'auto' : (element.props.minHeight || (hasChildren ? '120px' : '200px')),
         padding: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? borderStyles.padding : (element.props.padding || (hasChildren ? '16px' : '48px')),
         // Manejar background según el estado y tipo de borde
-        backgroundColor: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? undefined : (isDragOver ? '#dbeafe' : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent'))),
-        // Aplicar imagen de fondo - condición simplificada para testing
-        ...(element.props.backgroundImage ? {
-          backgroundImage: `url(${element.props.backgroundImage})`,
-          backgroundSize: element.props.backgroundSize || 'cover',
-          backgroundPosition: element.props.backgroundPosition || 'center',
-          backgroundRepeat: element.props.backgroundRepeat || 'no-repeat'
+        backgroundColor: (() => {
+          if (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) {
+            return undefined;
+          }
+          if (isDragOver) {
+            return '#dbeafe';
+          }
+          
+          // Si el tipo de fondo es blur, usar color semi-transparente
+          if (element.props.backgroundType === 'blur') {
+            const baseColor = element.props.backgroundColor || '#ffffff';
+            const opacity = element.props.backgroundOpacity || 0.1;
+            
+            if (baseColor.startsWith('#')) {
+              const hex = baseColor.replace('#', '');
+              const r = parseInt(hex.substr(0, 2), 16);
+              const g = parseInt(hex.substr(2, 2), 16);
+              const b = parseInt(hex.substr(4, 2), 16);
+              return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            }
+            return `rgba(255, 255, 255, ${opacity})`;
+          }
+          
+          const baseColor = element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent');
+          const opacity = element.props.backgroundOpacity || 1;
+          
+          // Si hay opacidad personalizada, convertir a rgba
+          if (opacity < 1 && baseColor !== 'transparent' && baseColor.startsWith('#')) {
+            const hex = baseColor.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+          }
+          
+          return baseColor;
+        })(),
+        // Aplicar backdrop-filter blur cuando esté habilitado (cualquier tipo de fondo)
+        ...(element.props.backgroundBlur && element.props.backgroundBlur > 0 ? {
+          backdropFilter: `blur(${element.props.backgroundBlur}px)`,
+          WebkitBackdropFilter: `blur(${element.props.backgroundBlur}px)`, // Safari support
         } : {}),
+        // La imagen de fondo se aplica ahora con div overlay para mejor control de opacidad y blur
         // Aplicar estilos de borde degradado cuando corresponda (siempre si es gradient, no solo cuando no está seleccionado)
         ...((element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? {
           background: (!isDragOver && !isSelected) ? borderStyles.background : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent'))
@@ -381,6 +385,7 @@ export const ContainerElement = ({
         margin: element.props.margin || '0px',
         cursor: isDragOver ? 'copy' : 'default',
         position: 'relative',
+        overflow: 'hidden', // Para que el blur no se salga del contenedor
         // Mejorar área de detección durante drag
         ...(isDragOver && {
           margin: '-4px',
@@ -388,6 +393,28 @@ export const ContainerElement = ({
         })
       }}
     >
+      {/* Imagen de fondo con opacidad y blur - como funcionaba antes */}
+      {element.props.backgroundImage && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `url(${element.props.backgroundImage})`,
+            backgroundSize: element.props.backgroundSize || 'cover',
+            backgroundPosition: element.props.backgroundPosition || 'center',
+            backgroundRepeat: element.props.backgroundRepeat || 'no-repeat',
+            opacity: element.props.backgroundOpacity || 1,
+            filter: element.props.backgroundBlur && element.props.backgroundBlur > 0 ? `blur(${element.props.backgroundBlur}px)` : 'none',
+            borderRadius: borderStyles.borderRadius || element.props.borderRadius || '0px',
+            zIndex: 0, // Nivel base, detrás del contenido pero visible
+            // Optimizaciones de rendimiento
+            willChange: element.props.backgroundBlur && element.props.backgroundBlur > 0 ? 'filter' : 'auto',
+            transform: 'translateZ(0)', // Forzar aceleración por hardware
+            backfaceVisibility: 'hidden'
+          }}
+        />
+      )}
+      
+      
       {/* Overlay de drop */}
       {isDragOver && (
         <div className="absolute inset-0 z-20 pointer-events-none">
@@ -403,16 +430,14 @@ export const ContainerElement = ({
       {/* Contenido del contenedor - con div interno si es borde degradado */}
       {(element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? (
         <div 
-          className="w-full h-full"
+          className="w-full h-full relative"
           style={{
-            // Fondo - manejar imagen de fondo o color según el estado
-            backgroundColor: isDragOver ? '#dbeafe' : (element.props.backgroundImage ? 'transparent' : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent'))),
-            // Aplicar imagen de fondo si está configurada - simplificado
-            ...(element.props.backgroundImage && !isDragOver ? {
-              backgroundImage: `url(${element.props.backgroundImage})`,
-              backgroundSize: element.props.backgroundSize || 'cover',
-              backgroundPosition: element.props.backgroundPosition || 'center',
-              backgroundRepeat: element.props.backgroundRepeat || 'no-repeat'
+            // Fondo - manejar color según el estado (imagen se aplica con div overlay)
+            backgroundColor: isDragOver ? '#dbeafe' : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent')),
+            // Aplicar backdrop-filter blur cuando esté habilitado
+            ...(element.props.backgroundBlur && element.props.backgroundBlur > 0 ? {
+              backdropFilter: `blur(${element.props.backgroundBlur}px)`,
+              WebkitBackdropFilter: `blur(${element.props.backgroundBlur}px)`, // Safari support
             } : {}),
             borderRadius: `calc(${borderStyles.borderRadius} - ${borderStyles._borderWidth}px)`,
             display: 'flex',
@@ -424,9 +449,30 @@ export const ContainerElement = ({
             padding: element.props.padding || (hasChildren ? '16px' : '48px'),
             minHeight: element.props.minHeight || (hasChildren ? '120px' : '200px'),
             // Añadir transición suave para evitar el efecto 'zoom'
-            transition: 'all 0.2s ease-in-out'
+            transition: 'all 0.2s ease-in-out',
+            overflow: 'hidden' // Para que el blur no se salga del contenedor
           }}
         >
+          {/* Imagen de fondo con opacidad y blur para contenedores con borde degradado */}
+          {element.props.backgroundImage && (
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `url(${element.props.backgroundImage})`,
+                backgroundSize: element.props.backgroundSize || 'cover',
+                backgroundPosition: element.props.backgroundPosition || 'center',
+                backgroundRepeat: element.props.backgroundRepeat || 'no-repeat',
+                opacity: element.props.backgroundOpacity || 1,
+                filter: element.props.backgroundBlur && element.props.backgroundBlur > 0 ? `blur(${element.props.backgroundBlur}px)` : 'none',
+                borderRadius: `calc(${borderStyles.borderRadius} - ${borderStyles._borderWidth}px)`,
+                zIndex: 0, // Nivel base
+                // Optimizaciones de rendimiento
+                willChange: element.props.backgroundBlur && element.props.backgroundBlur > 0 ? 'filter' : 'auto',
+                transform: 'translateZ(0)', // Forzar aceleración por hardware
+                backfaceVisibility: 'hidden'
+              }}
+            />
+          )}
           {hasChildren ? (
             <div 
               className={`w-full ${
@@ -442,7 +488,9 @@ export const ContainerElement = ({
                 justifyContent: element.props.justifyContent || 'flex-start',
                 flexWrap: element.props.flexWrap || 'nowrap',
                 gap: element.props.gap || '16px',
-                minHeight: (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') ? '150px' : 'auto'
+                minHeight: (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') ? '150px' : 'auto',
+                position: 'relative',
+                zIndex: 1 // Por encima del fondo
               }}
             >
               {children}
@@ -475,7 +523,9 @@ export const ContainerElement = ({
                 justifyContent: element.props.justifyContent || 'flex-start',
                 flexWrap: element.props.flexWrap || 'nowrap',
                 gap: element.props.gap || '16px',
-                minHeight: (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') ? '150px' : 'auto'
+                minHeight: (element.props.flexDirection === 'row' || element.props.flexDirection === 'row-reverse') ? '150px' : 'auto',
+                position: 'relative',
+                zIndex: 1 // Por encima del fondo
               }}
             >
               {children}
