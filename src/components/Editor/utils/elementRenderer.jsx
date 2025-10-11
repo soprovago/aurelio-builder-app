@@ -327,12 +327,33 @@ export const ContainerElement = ({
         minHeight: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? 'auto' : (element.props.minHeight || (hasChildren ? '120px' : '200px')),
         padding: (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) ? borderStyles.padding : (element.props.padding || (hasChildren ? '16px' : '48px')),
         // Manejar background según el estado y tipo de borde
-        backgroundColor: (() => {
+        ...(() => {
           if (element.props.borderType === 'gradient' && borderStyles._isGradientBorder) {
-            return undefined;
+            return {};
           }
           if (isDragOver) {
-            return '#dbeafe';
+            return { backgroundColor: '#dbeafe' };
+          }
+          
+          // Si el tipo de fondo es gradiente, usar la propiedad backgroundGradient
+          if (element.props.backgroundType === 'gradient' && element.props.backgroundGradient) {
+            console.log('🟢 GRADIENT DETECTED:', {
+              backgroundType: element.props.backgroundType,
+              backgroundGradient: element.props.backgroundGradient,
+              elementId: element.id,
+              allProps: element.props
+            });
+            return { background: element.props.backgroundGradient };
+          }
+          
+          // También verificar si hay backgroundGradient sin backgroundType
+          if (element.props.backgroundGradient && !element.props.backgroundType) {
+            console.log('🟡 GRADIENT WITHOUT TYPE DETECTED:', {
+              backgroundGradient: element.props.backgroundGradient,
+              elementId: element.id,
+              allProps: element.props
+            });
+            return { background: element.props.backgroundGradient };
           }
           
           // Si el tipo de fondo es blur, usar color semi-transparente
@@ -345,9 +366,9 @@ export const ContainerElement = ({
               const r = parseInt(hex.substr(0, 2), 16);
               const g = parseInt(hex.substr(2, 2), 16);
               const b = parseInt(hex.substr(4, 2), 16);
-              return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+              return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})` };
             }
-            return `rgba(255, 255, 255, ${opacity})`;
+            return { backgroundColor: `rgba(255, 255, 255, ${opacity})` };
           }
           
           const baseColor = element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent');
@@ -359,10 +380,10 @@ export const ContainerElement = ({
             const r = parseInt(hex.substr(0, 2), 16);
             const g = parseInt(hex.substr(2, 2), 16);
             const b = parseInt(hex.substr(4, 2), 16);
-            return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})` };
           }
           
-          return baseColor;
+          return { backgroundColor: baseColor };
         })(),
         // Aplicar backdrop-filter blur cuando esté habilitado (cualquier tipo de fondo)
         ...(element.props.backgroundBlur && element.props.backgroundBlur > 0 ? {
@@ -432,8 +453,48 @@ export const ContainerElement = ({
         <div 
           className="w-full h-full relative"
           style={{
-            // Fondo - manejar color según el estado (imagen se aplica con div overlay)
-            backgroundColor: isDragOver ? '#dbeafe' : (element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent')),
+            // Fondo - manejar background según el estado y tipo (imagen se aplica con div overlay)
+            ...(() => {
+              if (isDragOver) {
+                return { backgroundColor: '#dbeafe' };
+              }
+              
+              // Si el tipo de fondo es gradiente, usar la propiedad backgroundGradient
+              if (element.props.backgroundType === 'gradient' && element.props.backgroundGradient) {
+                console.log('🟢 GRADIENT DETECTED (BORDER CONTEXT):', {
+                  backgroundType: element.props.backgroundType,
+                  backgroundGradient: element.props.backgroundGradient,
+                  elementId: element.id
+                });
+                return { background: element.props.backgroundGradient };
+              }
+              
+              // También verificar si hay backgroundGradient sin backgroundType (en contexto de borde)
+              if (element.props.backgroundGradient && !element.props.backgroundType) {
+                console.log('🟡 GRADIENT WITHOUT TYPE DETECTED (BORDER CONTEXT):', {
+                  backgroundGradient: element.props.backgroundGradient,
+                  elementId: element.id
+                });
+                return { background: element.props.backgroundGradient };
+              }
+              
+              // Si el tipo de fondo es blur, usar color semi-transparente
+              if (element.props.backgroundType === 'blur') {
+                const baseColor = element.props.backgroundColor || '#ffffff';
+                const opacity = element.props.backgroundOpacity || 0.1;
+                
+                if (baseColor.startsWith('#')) {
+                  const hex = baseColor.replace('#', '');
+                  const r = parseInt(hex.substr(0, 2), 16);
+                  const g = parseInt(hex.substr(2, 2), 16);
+                  const b = parseInt(hex.substr(4, 2), 16);
+                  return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})` };
+                }
+                return { backgroundColor: `rgba(255, 255, 255, ${opacity})` };
+              }
+              
+              return { backgroundColor: element.props.backgroundColor || (shouldShowDefaultStyling ? '#f8fafc' : 'transparent') };
+            })(),
             // Aplicar backdrop-filter blur cuando esté habilitado
             ...(element.props.backgroundBlur && element.props.backgroundBlur > 0 ? {
               backdropFilter: `blur(${element.props.backgroundBlur}px)`,

@@ -152,7 +152,50 @@ function CanvasElementRenderer({
         style={{
           minHeight: props.minHeight || (hasChildren ? '120px' : '200px'),
           padding: props.padding || (hasChildren ? '16px' : '48px'),
-          backgroundColor: props.backgroundColor || (isDragOver ? '#dbeafe' : '#f8fafc'),
+          // Manejar background según el tipo
+          ...(() => {
+            if (isDragOver) {
+              return { backgroundColor: '#dbeafe' };
+            }
+            
+            // Si el tipo de fondo es gradiente, usar la propiedad backgroundGradient
+            if (props.backgroundType === 'gradient' && props.backgroundGradient) {
+              console.log('🟢 CANVAS GRADIENT DETECTED:', {
+                backgroundType: props.backgroundType,
+                backgroundGradient: props.backgroundGradient,
+                elementId: element.id
+              });
+              return { background: props.backgroundGradient };
+            }
+            
+            // También verificar si hay backgroundGradient sin backgroundType
+            if (props.backgroundGradient && !props.backgroundType) {
+              console.log('🟡 CANVAS GRADIENT WITHOUT TYPE DETECTED:', {
+                backgroundGradient: props.backgroundGradient,
+                elementId: element.id
+              });
+              return { background: props.backgroundGradient };
+            }
+            
+            const baseColor = props.backgroundColor || '#f8fafc';
+            const opacity = props.backgroundOpacity || 1;
+            
+            // Si hay opacidad personalizada, convertir a rgba
+            if (opacity < 1 && baseColor !== 'transparent' && baseColor.startsWith('#')) {
+              const hex = baseColor.replace('#', '');
+              const r = parseInt(hex.substr(0, 2), 16);
+              const g = parseInt(hex.substr(2, 2), 16);
+              const b = parseInt(hex.substr(4, 2), 16);
+              return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})` };
+            }
+            
+            return { backgroundColor: baseColor };
+          })(),
+          // Aplicar backdrop-filter blur cuando esté habilitado
+          ...(props.backgroundBlur && props.backgroundBlur > 0 ? {
+            backdropFilter: `blur(${props.backgroundBlur}px)`,
+            WebkitBackdropFilter: `blur(${props.backgroundBlur}px)`, // Safari support
+          } : {}),
           border: props.border === 'none' ? 'none' : (props.border || (isDragOver ? '3px solid #3b82f6' : '2px dashed #cbd5e1')),
           borderRadius: props.borderRadius || '12px',
           display: 'flex',
@@ -160,9 +203,31 @@ function CanvasElementRenderer({
           alignItems: hasChildren ? 'stretch' : 'center',
           justifyContent: hasChildren ? 'flex-start' : 'center',
           cursor: isDragOver ? 'copy' : 'default',
-          position: 'relative'
+          position: 'relative',
+          overflow: 'hidden' // Para que el blur no se salga del contenedor
         }}
       >
+        {/* Imagen de fondo con opacidad y blur */}
+        {props.backgroundImage && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `url(${props.backgroundImage})`,
+              backgroundSize: props.backgroundSize || 'cover',
+              backgroundPosition: props.backgroundPosition || 'center',
+              backgroundRepeat: props.backgroundRepeat || 'no-repeat',
+              opacity: props.backgroundOpacity || 1,
+              filter: props.backgroundBlur && props.backgroundBlur > 0 ? `blur(${props.backgroundBlur}px)` : 'none',
+              borderRadius: props.borderRadius || '12px',
+              zIndex: 0, // Nivel base, detrás del contenido pero visible
+              // Optimizaciones de rendimiento
+              willChange: props.backgroundBlur && props.backgroundBlur > 0 ? 'filter' : 'auto',
+              transform: 'translateZ(0)', // Forzar aceleración por hardware
+              backfaceVisibility: 'hidden'
+            }}
+          />
+        )}
+        
         {/* Overlay de drop activo */}
         {isDragOver && (
           <div className="absolute inset-0 bg-gradient-to-br from-blue-200/30 to-blue-300/30 border-2 border-blue-400 border-dashed rounded-xl flex items-center justify-center z-20 backdrop-blur-sm">

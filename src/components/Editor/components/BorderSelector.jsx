@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { FiSquare, FiCircle, FiMinus } from 'react-icons/fi';
 import { getPreviewStyles } from '../../../utils/borderUtils';
+import BorderTypeSelector from './BorderTypeSelector';
 
 /**
  * Componente selector de bordes para contenedores
@@ -87,42 +88,15 @@ function BorderSelector({
 
   return (
     <div className={className}>
-      <label className="block text-xs font-medium text-gray-400 mb-3">
-        Tipo de borde (Props: {element.props.borderType || 'undefined'}, Local: {borderType})
-      </label>
-      
-      {/* Selector de tipo de borde */}
-      <div className="flex gap-1 mb-4 bg-[#2a2a2a] rounded-lg p-1">
-        <button
-          onClick={() => {
-            console.log('🔲 Solid button clicked!');
-            handleBorderTypeChange('solid');
-          }}
-          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 ${
-            borderType === 'solid' 
-              ? 'bg-purple-500 text-white' 
-              : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
-          }`}
-        >
-          <FiSquare className="w-3 h-3" />
-          <span className="text-xs font-medium">Sólido</span>
-        </button>
-        
-        <button
-          onClick={() => {
-            console.log('🌈 Gradient button clicked!');
-            handleBorderTypeChange('gradient');
-          }}
-          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 ${
-            borderType === 'gradient' 
-              ? 'bg-purple-500 text-white' 
-              : 'text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
-          }`}
-        >
-          <div className="w-3 h-3 rounded bg-gradient-to-r from-purple-500 to-blue-500"></div>
-          <span className="text-xs font-medium">Degradado</span>
-        </button>
-      </div>
+      {/* Selector moderno de tipo de borde */}
+      <BorderTypeSelector
+        borderType={borderType}
+        onChange={(newType) => {
+          console.log('🔄 BorderTypeSelector onChange:', newType);
+          handleBorderTypeChange(newType);
+        }}
+        className="mb-4"
+      />
 
       {/* Controles para borde sólido */}
       {borderType === 'solid' && (
