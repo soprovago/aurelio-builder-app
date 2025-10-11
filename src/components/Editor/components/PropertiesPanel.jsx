@@ -200,7 +200,7 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       max="1200"
                       value={parseInt(selectedElement.props.width || '1140')}
                       onChange={(e) => handlePropertyChange('width', e.target.value + 'px')}
-                      className="flex-1 accent-purple-600"
+                      className="flex-1 custom-slider"
                     />
                     <span className="text-xs text-gray-400 min-w-[50px]">
                       {selectedElement.props.width || '1140px'}
@@ -218,7 +218,7 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       max="800"
                       value={parseInt(selectedElement.props.minHeight || '100')}
                       onChange={(e) => handlePropertyChange('minHeight', e.target.value + 'px')}
-                      className="flex-1 accent-purple-600"
+                      className="flex-1 custom-slider"
                     />
                     <span className="text-xs text-gray-400 min-w-[50px]">
                       {selectedElement.props.minHeight || '100px'}
@@ -485,7 +485,7 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       max="72"
                       value={parseInt(selectedElement.props.fontSize || '16')}
                       onChange={(e) => handlePropertyChange('fontSize', e.target.value + 'px')}
-                      className="flex-1 accent-purple-600"
+                      className="flex-1 custom-slider"
                     />
                     <span className="text-xs text-gray-400 min-w-[40px]">
                       {selectedElement.props.fontSize || '16px'}
@@ -633,7 +633,7 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       max="32"
                       value={parseInt(selectedElement.props.fontSize || '16')}
                       onChange={(e) => handlePropertyChange('fontSize', e.target.value + 'px')}
-                      className="flex-1 accent-purple-600"
+                      className="flex-1 custom-slider"
                     />
                     <span className="text-xs text-gray-400 min-w-[40px]">
                       {selectedElement.props.fontSize || '16px'}
@@ -904,7 +904,7 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       step="0.1"
                       value={selectedElement.props.opacity || '1'}
                       onChange={(e) => handlePropertyChange('opacity', e.target.value)}
-                      className="flex-1 accent-purple-600"
+                      className="flex-1 custom-slider"
                     />
                     <span className="text-xs text-gray-400 min-w-[3rem]">
                       {Math.round((selectedElement.props.opacity || 1) * 100)}%
@@ -1077,7 +1077,7 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                           max="72"
                           value={parseInt(selectedElement.props.fontSize || '16')}
                           onChange={(e) => handlePropertyChange('fontSize', e.target.value + 'px')}
-                          className="flex-1 accent-purple-600"
+                          className="flex-1 custom-slider"
                         />
                         <span className="text-xs text-gray-400 min-w-[40px]">
                           {selectedElement.props.fontSize || '16px'}

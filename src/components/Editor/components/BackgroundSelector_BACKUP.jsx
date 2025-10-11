@@ -235,7 +235,7 @@ function BackgroundSelector({
                   const value = parseFloat(e.target.value);
                   onChange('backgroundOpacity', value);
                 }}
-                className="flex-1 h-2 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer slider"
+                className="flex-1 custom-slider progress-gradient"
                 style={{
                   background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${((element.props.backgroundOpacity || 1) * 100)}%, #2a2a2a ${((element.props.backgroundOpacity || 1) * 100)}%, #2a2a2a 100%)`,
                   WebkitAppearance: 'none',
@@ -437,7 +437,7 @@ function BackgroundSelector({
                               : `radial-gradient(circle, ${newColors.map(c => `${c.color} ${c.position}%`).join(', ')})`;
                             onChange('backgroundGradient', gradientString);
                           }}
-                          className="flex-1 h-2 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer"
+                          className="flex-1 custom-slider"
                         />
                         <span className="text-xs text-gray-400 w-10">{colorStop.position}%</span>
                         {(element.props.gradientColors || []).length > 2 && (
@@ -594,7 +594,7 @@ function BackgroundSelector({
                     const value = parseFloat(e.target.value);
                     onChange('backgroundBlur', value);
                   }}
-                  className="flex-1 h-3 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer"
+                  className="flex-1 custom-slider progress-gradient"
                   style={{
                     background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${((element.props.backgroundBlur || 0) / 30) * 100}%, #2a2a2a ${((element.props.backgroundBlur || 0) / 30) * 100}%, #2a2a2a 100%)`,
                     WebkitAppearance: 'none',
@@ -922,7 +922,7 @@ function BackgroundSelector({
                     const value = parseFloat(e.target.value);
                     onChange('backgroundOpacity', value);
                   }}
-                  className="flex-1 h-2 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer slider"
+                  className="flex-1 custom-slider progress-gradient"
                   style={{
                     background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${((element.props.backgroundOpacity || 1) * 100)}%, #2a2a2a ${((element.props.backgroundOpacity || 1) * 100)}%, #2a2a2a 100%)`,
                     WebkitAppearance: 'none',

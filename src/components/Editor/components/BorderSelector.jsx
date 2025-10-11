@@ -113,7 +113,7 @@ function BorderSelector({
                 max="20"
                 value={parseInt(element.props.borderWidth || '1')}
                 onChange={(e) => onChange('borderWidth', e.target.value)}
-                className="flex-1 accent-purple-600"
+                className="flex-1 custom-slider"
               />
               <span className="text-xs text-gray-400 min-w-[30px]">
                 {element.props.borderWidth || '1'}px
@@ -177,7 +177,7 @@ function BorderSelector({
                 max="20"
                 value={parseInt(element.props.borderWidth || '3')}
                 onChange={(e) => onChange('borderWidth', e.target.value)}
-                className="flex-1 accent-purple-600"
+                className="flex-1 custom-slider"
               />
               <span className="text-xs text-gray-400 min-w-[30px]">
                 {element.props.borderWidth || '3'}px
@@ -277,7 +277,7 @@ function BorderSelector({
             max="50"
             value={parseInt(element.props.borderRadius || '0')}
             onChange={(e) => onChange('borderRadius', e.target.value + 'px')}
-            className="flex-1 accent-purple-600"
+            className="flex-1 custom-slider"
           />
           <span className="text-xs text-gray-400 min-w-[35px]">
             {element.props.borderRadius || '0px'}

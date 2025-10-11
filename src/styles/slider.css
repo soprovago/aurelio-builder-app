@@ -1,0 +1,90 @@
+/* 🎛️ Estilos globales para sliders - Tema morado consistente */
+/* Aplica a todos los input[type="range"] del proyecto */
+
+.custom-slider,
+input[type="range"].custom-slider {
+  outline: none !important;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 4px;
+  background: #2a2a2a;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.custom-slider:focus,
+input[type="range"].custom-slider:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Thumb para WebKit (Chrome, Safari, Edge) */
+.custom-slider::-webkit-slider-thumb,
+input[type="range"].custom-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.custom-slider::-webkit-slider-thumb:hover,
+input[type="range"].custom-slider::-webkit-slider-thumb:hover {
+  background: #7c3aed;
+  transform: scale(1.1);
+}
+
+.custom-slider::-webkit-slider-thumb:focus,
+input[type="range"].custom-slider::-webkit-slider-thumb:focus {
+  outline: none;
+}
+
+/* Thumb para Firefox */
+.custom-slider::-moz-range-thumb,
+input[type="range"].custom-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.custom-slider::-moz-range-thumb:hover,
+input[type="range"].custom-slider::-moz-range-thumb:hover {
+  background: #7c3aed;
+  transform: scale(1.1);
+}
+
+.custom-slider::-moz-range-thumb:focus,
+input[type="range"].custom-slider::-moz-range-thumb:focus {
+  outline: none;
+}
+
+/* Track para Firefox */
+.custom-slider::-moz-range-track,
+input[type="range"].custom-slider::-moz-range-track {
+  background: #2a2a2a;
+  height: 4px;
+  border-radius: 999px;
+  border: none;
+}
+
+/* Estilos específicos para sliders con gradiente de progreso */
+.custom-slider.progress-gradient {
+  background: transparent;
+}
+
+/* Clase helper para aplicar fácilmente */
+.slider-purple {
+  @apply custom-slider;
+}
