@@ -61,7 +61,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-color);
+  background: #777;
 }
 
 /* Selection styling */

@@ -27,7 +27,8 @@ import {
   FiSliders,
   FiPlus,
   FiInbox,
-  FiTarget
+  FiTarget,
+  FiDownload
 } from 'react-icons/fi';
 import AddContainerButton from './components/AddContainerButton';
 import ElementsPanel from './components/ElementsPanelOptimized';
@@ -187,6 +188,14 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
             // Elemento existente siendo movido
             // Evitar mover un elemento a sí mismo o a sus propios hijos
             if (data.id !== element.id && !isElementChild(element, data.id, allElements)) {
+              
+              // IMPORTANTE: Si ambos son contenedores del mismo nivel (canvas principal),
+              // NO mover dentro, esto es para REORDENAMIENTO, no para drop interno
+              if (!isNested && data.parentId === null && parentId === null) {
+                console.log('⚠️ Ignoring container drop - this should be reordering, not moving inside');
+                return; // Dejar que el reordenamiento del canvas principal se encargue
+              }
+              
               if (onMoveToContainer) {
                 onMoveToContainer(data.id, element.id);
               }
@@ -335,7 +344,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
   const handleDragEnd = () => {
     setIsDragging(false);
     setDragOverPosition(null);
-    setIsDragOver(false); // Limpiar estado de dragOver
+    setIsDragOver(false);
     
     // Limpiar estado de drag activo
     setActiveDrag?.({ isDragging: false });
@@ -356,12 +365,24 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     
     e.dataTransfer.dropEffect = dropEffect;
     
-    // Determinar si estamos en la mitad superior o inferior
+    // Determinar posición: top, center, bottom
     const rect = e.currentTarget.getBoundingClientRect();
     const mouseY = e.clientY;
-    const elementMiddle = rect.top + rect.height / 2;
+    const elementHeight = rect.height;
+    const relativeY = mouseY - rect.top;
     
-    setDragOverPosition(mouseY < elementMiddle ? 'top' : 'bottom');
+    let position;
+    if (relativeY < elementHeight * 0.25) {
+      position = 'top';    // 25% superior = reordenamiento ANTES
+    } else if (relativeY > elementHeight * 0.75) {
+      position = 'bottom'; // 25% inferior = reordenamiento DESPUÉS
+    } else {
+      position = 'center'; // 50% central = drop INTERNO (solo contenedores)
+    }
+    
+    setDragOverPosition(position);
+    
+    return false; // Importante para algunos navegadores
   };
 
   const handleDragLeave = (e) => {
@@ -369,6 +390,15 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setDragOverPosition(null);
     }
+  };
+  
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Forzar dropEffect - CRÍTICO para que funcione el drop
+    e.dataTransfer.dropEffect = 'move';
+    return false; // CRÍTICO para algunos navegadores
   };
 
   const handleDrop = (e) => {
@@ -392,26 +422,29 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         }
       } else if (data.type === 'canvas-element' && data.id !== element.id) {
         // Manejar movimiento de elementos existentes
-        if (element.type === ELEMENT_TYPES.CONTAINER) {
-          // Si el target es un contenedor, mover el elemento arrastrado dentro del contenedor
-          if (!isElementChild(element, data.id, allElements)) {
-            if (onMoveToContainer) {
-              onMoveToContainer(data.id, element.id);
-            }
-          }
-        } else {
-          // Reordenar elementos existentes (solo para no-contenedores del mismo nivel)
+        
+        // DETECCIÓN INTELIGENTE: ¿Drop interno o reordenamiento?
+        const isDropIntoContainer = element.type === ELEMENT_TYPES.CONTAINER && 
+                                   dragOverPosition === 'center'; // Solo si soltamos en el CENTRO del contenedor
+        
+        // REORDENAMIENTO: Si mismo nivel O si soltamos en top/bottom (no center)
+        if (((data.parentId === parentId) || (!data.parentId && !parentId)) && !isDropIntoContainer) {
           let targetIndex = index;
           if (dragOverPosition === 'bottom') {
             targetIndex = index + 1;
           }
           
-          // Solo reordenar si ambos elementos están en el mismo contenedor padre
-          if (data.parentId === parentId) {
-            onReorder(data.index, targetIndex);
+          console.log(`🔄 Reordering in canvas: ${data.id} from ${data.index} to ${targetIndex}`);
+          onReorder(data.index, targetIndex);
+          
+        } else if (isDropIntoContainer && !isNested) {
+          // DROP INTERNO: Solo si soltamos en el CENTRO del contenedor
+          if (!isElementChild(element, data.id, allElements)) {
+            console.log('📦 Moving element TO CONTAINER CENTER:', data.id, '-> container:', element.id);
+            if (onMoveToContainer) {
+              onMoveToContainer(data.id, element.id);
+            }
           }
-          // Para otros casos (mover entre contenedores), no hacer nada aquí
-          // ya que el contenedor de destino maneja el movimiento
         }
       }
     } catch (error) {
@@ -421,7 +454,7 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
 
   return (
     <div className="relative">
-      {/* Indicador de drop en la parte superior */}
+      {/* Indicador de drop en la parte superior - REORDENAMIENTO */}
       {dragOverPosition === 'top' && (
         <div className="absolute -top-1 left-0 right-0 z-50">
           <div className="h-1 bg-[#8b5cf6] rounded-full shadow-lg">
@@ -431,22 +464,34 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
         </div>
       )}
       
-      {/* Elemento principal */}
+      {/* Indicador de drop en el centro - DROP INTERNO */}
+      {dragOverPosition === 'center' && element.type === ELEMENT_TYPES.CONTAINER && (
+        <div className="absolute inset-0 z-40 pointer-events-none">
+          <div className="w-full h-full border-2 border-dashed border-green-500 bg-green-100/30 rounded-lg flex items-center justify-center">
+            <div className="text-green-600 flex items-center gap-2">
+              <FiDownload className="w-5 h-5" />
+              <span className="text-sm font-semibold">Soltar DENTRO del contenedor</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Elemento principal - FUNCIONALIDAD COMPLETA CON DRAG & DROP */}
       <div
         ref={dragRef}
-        draggable={true} // Hacer todos los elementos draggable
+        draggable={true}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        onDragOver={undefined} // Deshabilitado para evitar interferencias con contenedores
-        onDragLeave={undefined}
-        onDrop={undefined}
+        onDragOver={!isNested ? handleDragOver : undefined}
+        onDragEnter={!isNested ? handleDragEnter : undefined}
+        onDragLeave={!isNested ? handleDragLeave : undefined}
+        onDrop={!isNested ? handleDrop : undefined}
         onMouseEnter={(e) => {
           e.stopPropagation();
           setShowAddButton(true);
         }}
         onMouseLeave={(e) => {
           e.stopPropagation();
-          // Verificar que relatedTarget existe antes de usar contains
           if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget)) {
             setShowAddButton(false);
           }
@@ -460,19 +505,21 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
           dragOverPosition ? 'ring-2 ring-[#8b5cf6] ring-opacity-50' : 'hover:ring-2 hover:ring-[#8b5cf6] hover:ring-opacity-30'
         } transition-all cursor-grab active:cursor-grabbing`}
         onClick={(e) => {
-          // Permitir clic para seleccionar solo si no estamos arrastrando
           if (!isDragging) {
             onSelect(element);
           }
         }}
       >
-        <div className={`relative ${
-          element.type === ELEMENT_TYPES.CONTAINER ? 'pointer-events-auto' : 'pointer-events-none'
-        }`}>
-          {renderElement()}
+        <div className="relative">
+          {/* ESTRATEGIA INTELIGENTE: */}
+          {/* - Elementos ANIDADOS: pointer-events-auto (necesitan clics para selección) */}
+          {/* - Elementos PRINCIPALES: pointer-events-none (solo drag & drop en wrapper) */}
+          <div className={isNested ? "pointer-events-auto" : "pointer-events-none"}>
+            {renderElement()}
+          </div>
           
           {/* Controles compactos agrupados */}
-          <div className="canvas-controls absolute top-1 right-1 opacity-0 transition-all duration-200 pointer-events-auto z-[9999]">
+          <div className="canvas-controls absolute top-1 right-1 opacity-0 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-[9999]">
             <div className={CONTROL_STYLES.controlsContainer}>
               <button
                 onClick={(e) => {
@@ -480,9 +527,9 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
                   onDuplicate(element, parentId);
                 }}
                 className={CONTROL_STYLES.button}
-                title="Agregar elemento"
+                title="Duplicar elemento"
               >
-                <FiPlus className="w-3 h-3" />
+                <FiCopy className="w-3 h-3 pointer-events-none" />
               </button>
               
               <button
@@ -493,14 +540,14 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
                 className={CONTROL_STYLES.deleteButton}
                 title="Eliminar"
               >
-                <FiTrash2 className="w-3 h-3" />
+                <FiTrash2 className="w-3 h-3 pointer-events-none" />
               </button>
             </div>
           </div>
           
           {/* Controles de reordenamiento para elementos dentro de contenedores */}
           {isNested && parentElement && onReorderInContainer && (
-            <div className="canvas-reorder-controls absolute top-1 left-1 opacity-0 transition-all duration-200 pointer-events-auto z-[9999]">
+            <div className="canvas-reorder-controls absolute top-1 left-1 opacity-0 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-[9999]">
               <ContainerReorderControls
                 element={element}
                 parentElement={parentElement}
@@ -512,29 +559,30 @@ function CanvasElement({ element, index, isSelected, onSelect, onDelete, onDupli
               />
             </div>
           )}
-          
-          {/* Overlay mejorado para indicar que es arrastrable */}
-          <div className="canvas-overlay absolute inset-0 bg-gradient-to-br from-[#8b5cf6] to-[#ec4899] pointer-events-none rounded-lg" />
         </div>
         
         {/* Controles rápidos de layout para contenedores */}
-        <QuickLayoutControls
-          selectedElement={isSelected ? element : null}
-          onUpdateElement={onUpdateElement}
-          position="floating"
-        />
-        
+        <div className="pointer-events-auto z-[99999] relative">
+          <QuickLayoutControls
+            selectedElement={isSelected ? element : null}
+            onUpdateElement={onUpdateElement}
+            position="floating"
+            elementRef={dragRef}
+          />
+        </div>
         
         {/* Botón de añadir contenedor (solo para contenedores) */}
         {element.type === ELEMENT_TYPES.CONTAINER && showAddButton && (
-          <AddContainerButton 
-            onAddContainer={handleAddContainer}
-            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          />
+          <div className="pointer-events-none">
+            <AddContainerButton 
+              onAddContainer={handleAddContainer}
+              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            />
+          </div>
         )}
       </div>
       
-      {/* Indicador de drop en la parte inferior */}
+      {/* Indicador de drop en la parte inferior - REORDENAMIENTO */}
       {dragOverPosition === 'bottom' && (
         <div className="absolute -bottom-1 left-0 right-0 z-50">
           <div className="h-1 bg-[#8b5cf6] rounded-full shadow-lg">

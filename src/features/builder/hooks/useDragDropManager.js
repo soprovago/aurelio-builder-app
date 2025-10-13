@@ -73,7 +73,7 @@ function useDragDropManager({
     
     e.dataTransfer.dropEffect = dropEffect;
     
-    // Determinar si estamos en la mitad superior o inferior
+    // SIMPLIFICADO: Tratar todos los elementos igual
     const rect = e.currentTarget.getBoundingClientRect();
     const mouseY = e.clientY;
     const elementMiddle = rect.top + rect.height / 2;
@@ -103,17 +103,18 @@ function useDragDropManager({
           targetIndex = index + 1;
         }
         
-        // Llamar a la función de agregar elemento con el índice específico
+        console.log(`📥 Adding element from sidebar at index ${targetIndex}`);
         if (typeof onAddElementAtIndex === 'function') {
           onAddElementAtIndex(data.element, targetIndex);
         }
       } else if (data.type === 'canvas-element' && data.id !== element.id) {
-        // Reordenar elementos existentes
+        // Reordenar elementos existentes (incluye contenedores)
         let targetIndex = index;
         if (dragOverPosition === 'bottom') {
           targetIndex = index + 1;
         }
         
+        console.log(`🔄 Reordering ${data.id} from index ${data.index} to ${targetIndex}`);
         if (typeof onReorder === 'function') {
           onReorder(data.index, targetIndex);
         }
@@ -179,9 +180,10 @@ function useDragDropManager({
     draggable: true,
     onDragStart: handleDragStart,
     onDragEnd: handleDragEnd,
-    onDragOver: element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragOver,
-    onDragLeave: element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDragLeave,
-    onDrop: element.type === ELEMENT_TYPES.CONTAINER ? undefined : handleDrop,
+    // Los contenedores también pueden ser reordenados a nivel de canvas
+    onDragOver: handleDragOver,
+    onDragLeave: handleDragLeave,
+    onDrop: handleDrop,
   };
 
   // Props específicas para contenedores

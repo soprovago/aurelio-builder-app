@@ -84,6 +84,11 @@ input[type="range"].custom-slider::-moz-range-track {
   background: transparent;
 }
 
+/* Utilidad para crear gradiente de progreso dinámico */
+.custom-slider[data-progress] {
+  background: transparent;
+}
+
 /* Clase helper para aplicar fácilmente */
 .slider-purple {
   @apply custom-slider;

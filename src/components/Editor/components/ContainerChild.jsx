@@ -17,13 +17,22 @@ function ContainerChild({
   selectedElement, 
   viewportMode, 
   parentElement, 
-  onUpdateElement 
+  onUpdateElement,
+  // Props adicionales para el canvas principal (reordenamiento)
+  onAddElementAtIndex,
+  onReorder,
+  index,
+  allElements
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [dragOverPosition, setDragOverPosition] = useState(null);
   const childRef = useRef(null);
   const menuRef = useRef(null);
+  
+  // Determinar si estamos en el canvas principal (sin padre)
+  const isInCanvasRoot = !parentElement;
 
   // Cerrar menú al hacer clic fuera
   useEffect(() => {
@@ -40,13 +49,14 @@ function ContainerChild({
   }, [isMenuOpen]);
 
   const handleDragStart = (e) => {
-    console.log('🚀 ContainerChild drag started:', element.id, element.type, 'Parent:', parentElement?.id);
+    console.log('🚀 ContainerChild drag started:', element.id, element.type, 'Parent:', parentElement?.id, 'Index:', index);
     setIsDragging(true);
     setIsMenuOpen(false);
     e.dataTransfer.setData('text/plain', JSON.stringify({ 
       type: 'canvas-element', 
       id: element.id,
-      parentId: parentElement?.id || null // Incluir información del padre
+      parentId: parentElement?.id || null, // Incluir información del padre
+      index: index || 0 // Incluir índice del elemento
     }));
     e.dataTransfer.effectAllowed = 'move';
     // No detener la propagación para permitir que el parent también pueda manejar el evento
@@ -55,7 +65,81 @@ function ContainerChild({
   const handleDragEnd = (e) => {
     console.log('🏁 ContainerChild drag ended:', element.id);
     setIsDragging(false);
+    setDragOverPosition(null);
     // No detener propagación para permitir que otros componentes manejen el evento
+  };
+  
+  // Handlers para reordenamiento en canvas principal
+  const handleElementDragOver = (e) => {
+    if (!isInCanvasRoot) return; // Solo para elementos en canvas principal
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Verificar qué tipo de elemento se está arrastrando
+    const dataTransfer = e.dataTransfer;
+    let dropEffect = 'move';
+    
+    // Para elementos del sidebar, usar 'copy'
+    if (dataTransfer.effectAllowed === 'copy') {
+      dropEffect = 'copy';
+    }
+    
+    e.dataTransfer.dropEffect = dropEffect;
+    
+    // Calcular posición de drop
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseY = e.clientY;
+    const elementMiddle = rect.top + rect.height / 2;
+    
+    setDragOverPosition(mouseY < elementMiddle ? 'top' : 'bottom');
+  };
+  
+  const handleElementDragLeave = (e) => {
+    if (!isInCanvasRoot) return;
+    
+    // Solo limpiar si realmente salimos del elemento
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setDragOverPosition(null);
+    }
+  };
+  
+  const handleElementDrop = (e) => {
+    if (!isInCanvasRoot) return; // Solo para elementos en canvas principal
+    
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverPosition(null);
+    
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      
+      if (data.type === 'panel-element') {
+        // Elemento desde el sidebar - insertarlo en la posición correcta
+        let targetIndex = index;
+        if (dragOverPosition === 'bottom') {
+          targetIndex = index + 1;
+        }
+        
+        console.log(`📥 Adding element from sidebar at index ${targetIndex}`);
+        if (typeof onAddElementAtIndex === 'function') {
+          onAddElementAtIndex(data.element, targetIndex);
+        }
+      } else if (data.type === 'canvas-element' && data.id !== element.id) {
+        // Reordenar elementos existentes
+        let targetIndex = index;
+        if (dragOverPosition === 'bottom') {
+          targetIndex = index + 1;
+        }
+        
+        console.log(`🔄 Reordering ${data.id} from index ${data.index} to ${targetIndex}`);
+        if (typeof onReorder === 'function') {
+          onReorder(data.index, targetIndex);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling drop in canvas:', error);
+    }
   };
 
   const renderChildElement = () => {
@@ -270,16 +354,34 @@ function ContainerChild({
   };
 
   return (
-    <div
-      ref={childRef}
-      draggable={shouldBeDraggable}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      className={`relative group/item ${isSelected ? 'ring-2 ring-[#8b5cf6]' : ''} ${
-        isDragging ? 'opacity-70' : ''
-      } hover:ring-2 hover:ring-[#8b5cf6] transition-all`}
-      onClick={handleElementClick}
-    >
+    <div className="relative">
+      {/* Indicadores de posición de drop para canvas principal */}
+      {isInCanvasRoot && dragOverPosition && (
+        <div className={`absolute left-0 right-0 h-0.5 bg-[#8b5cf6] z-10 transition-all ${
+          dragOverPosition === 'top' ? '-top-1' : '-bottom-1'
+        }`} />
+      )}
+      
+      <div
+        ref={childRef}
+        draggable={shouldBeDraggable}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        // Agregar handlers de reordenamiento solo para canvas principal
+        {...(isInCanvasRoot ? {
+          onDragOver: handleElementDragOver,
+          onDragLeave: handleElementDragLeave,
+          onDrop: handleElementDrop,
+        } : {})}
+        className={`relative group/item ${isSelected ? 'ring-2 ring-[#8b5cf6]' : ''} ${
+          isDragging ? 'opacity-70' : ''
+        } ${
+          isInCanvasRoot && dragOverPosition ? 'ring-2 ring-[#8b5cf6] ring-opacity-50' : 'hover:ring-2 hover:ring-[#8b5cf6] hover:ring-opacity-30'
+        } transition-all cursor-grab active:cursor-grabbing`}
+        onClick={handleElementClick}
+      >
+      {/* Contenido del elemento */}
+      {renderChildElement()}
       
       {/* Overlay de herramientas para elementos hijo */}
       <div className="absolute top-1 right-1 opacity-0 group-hover/item:opacity-100 transition-opacity pointer-events-none">
@@ -311,7 +413,7 @@ function ContainerChild({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDuplicate(element, parentElement.id);
+                    onDuplicate(element, parentElement?.id || null);
                     setIsMenuOpen(false);
                   }}
                   className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors"
@@ -323,7 +425,7 @@ function ContainerChild({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete(element.id, parentElement.id);
+                    onDelete(element.id, parentElement?.id || null);
                     setIsMenuOpen(false);
                   }}
                   className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
@@ -335,6 +437,7 @@ function ContainerChild({
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

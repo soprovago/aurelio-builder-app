@@ -107,13 +107,8 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
         }}
       >
         <div className="w-full flex justify-center p-4">
-          <CanvasDropZone
-            isActive={isDragOver}
-            isEmpty={elements.length === 0}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className={viewportMode === VIEWPORT_MODES.DESKTOP ? 'w-full' : 'rounded-lg shadow-lg border border-gray-200'}
+          <div
+            className={`bg-white ${viewportMode === VIEWPORT_MODES.DESKTOP ? 'w-full' : 'rounded-lg shadow-lg border border-gray-200'}`}
             style={{
               width: viewportConfig.width,
               maxWidth: viewportConfig.maxWidth,
@@ -130,12 +125,13 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                   {elements.map((element, index) => (
                     <div key={element.id} className="relative">
                       {/* Indicador de inserción superior */}
-                      <InsertionIndicator 
+                      {/* <InsertionIndicator 
                         isActive={isDragging && index === 0}
                         orientation="horizontal"
                         className="mb-2"
-                      />
+                      /> */}
                       
+                      {/* CanvasElement original - RESTAURADO y CORREGIDO */}
                       <CanvasElement
                         element={element}
                         index={index}
@@ -159,11 +155,11 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                       />
                       
                       {/* Indicador de inserción inferior */}
-                      <InsertionIndicator 
+                      {/* <InsertionIndicator 
                         isActive={isDragging && index === elements.length - 1}
                         orientation="horizontal"
                         className="mt-2"
-                      />
+                      /> */}
                     </div>
                   ))}
                 </div>
@@ -179,7 +175,7 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                 </div>
               </>
             )}
-          </CanvasDropZone>
+          </div>
         </div>
       </div>
     </div>

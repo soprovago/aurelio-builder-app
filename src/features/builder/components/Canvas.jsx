@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FiGrid, FiPlus } from 'react-icons/fi';
 import { VIEWPORT_CONFIGS, VIEWPORT_MODES } from '../../../constants/viewportConfigs';
 import CanvasTemplateSystem from '../../../components/Editor/components/CanvasTemplateSystem';
-import CanvasElement from './CanvasElement';
+import ContainerChild from '../../../components/Editor/components/ContainerChild';
 
 /**
  * Canvas principal del editor (versión simplificada)
@@ -23,7 +23,9 @@ function Canvas({
   onReorder,
   onAddContainerStructure,
   onLoadTemplate,
-  onUploadTemplate
+  onUploadTemplate,
+  onReorderInContainer,
+  onMoveOutOfContainer
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const viewportConfig = VIEWPORT_CONFIGS[viewportMode];
@@ -118,7 +120,7 @@ function Canvas({
               </div>
             ) : (
               <>
-                {/* Elementos del canvas renderizados con CanvasElement modular */}
+                {/* Elementos del canvas renderizados como ContainerChild (Canvas = Contenedor Padre) */}
                 <div 
                   className="space-y-2 mb-8"
                   onDragOver={handleDragOver}
@@ -126,22 +128,23 @@ function Canvas({
                   onDrop={handleDrop}
                 >
                   {elements.map((element, index) => (
-                    <CanvasElement
+                    <ContainerChild
                       key={element.id}
                       element={element}
                       index={index}
                       isSelected={selectedElement?.id === element.id}
                       onSelect={onSelectElement}
-                      onDelete={onDeleteElement}
-                      onDuplicate={onDuplicateElement}
+                      onDelete={(childId) => onDeleteElement(childId)}
+                      onDuplicate={(childElement) => onDuplicateElement(childElement)}
                       onAddToContainer={onAddToContainer}
                       onMoveToContainer={onMoveToContainer}
                       selectedElement={selectedElement}
                       viewportMode={viewportMode}
+                      parentElement={null} // Canvas = contenedor raíz, no tiene padre
                       onUpdateElement={onUpdateElement}
+                      // Props para reordenamiento en canvas principal
                       onAddElementAtIndex={onAddElementAtIndex}
                       onReorder={onReorder}
-                      onAddElement={onAddElement}
                       allElements={elements}
                     />
                   ))}

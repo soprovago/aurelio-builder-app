@@ -110,9 +110,9 @@ function ElementMenu({
  */
 export function DragHandle({ className = "", isVisible = false }) {
   return (
-    <div className={`absolute top-2 left-2 transition-opacity pointer-events-auto ${className}`}>
-      <div className="p-1" title="Arrastra para mover">
-        <FiMove className="w-3 h-3 text-black drop-shadow-sm" />
+    <div className={`absolute top-2 left-2 transition-opacity pointer-events-none ${className}`}>
+      <div className="p-2 bg-gray-900 bg-opacity-90 rounded-md shadow-lg border border-gray-600" title="Arrastra para reordenar elementos">
+        <FiMove className="w-4 h-4 text-white" />
       </div>
     </div>
   );

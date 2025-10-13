@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { FiSquare, FiCircle, FiMinus } from 'react-icons/fi';
 import { getPreviewStyles } from '../../../utils/borderUtils';
+import { getProgressGradientStyle } from '../../../utils/sliderUtils';
 import BorderTypeSelector from './BorderTypeSelector';
 
 /**
@@ -113,7 +114,8 @@ function BorderSelector({
                 max="20"
                 value={parseInt(element.props.borderWidth || '1')}
                 onChange={(e) => onChange('borderWidth', e.target.value)}
-                className="flex-1 custom-slider"
+                className="flex-1 custom-slider progress-gradient"
+                style={getProgressGradientStyle(parseInt(element.props.borderWidth || '1'), 0, 20)}
               />
               <span className="text-xs text-gray-400 min-w-[30px]">
                 {element.props.borderWidth || '1'}px
@@ -177,7 +179,8 @@ function BorderSelector({
                 max="20"
                 value={parseInt(element.props.borderWidth || '3')}
                 onChange={(e) => onChange('borderWidth', e.target.value)}
-                className="flex-1 custom-slider"
+                className="flex-1 custom-slider progress-gradient"
+                style={getProgressGradientStyle(parseInt(element.props.borderWidth || '3'), 1, 20)}
               />
               <span className="text-xs text-gray-400 min-w-[30px]">
                 {element.props.borderWidth || '3'}px
@@ -277,7 +280,8 @@ function BorderSelector({
             max="50"
             value={parseInt(element.props.borderRadius || '0')}
             onChange={(e) => onChange('borderRadius', e.target.value + 'px')}
-            className="flex-1 custom-slider"
+            className="flex-1 custom-slider progress-gradient"
+            style={getProgressGradientStyle(parseInt(element.props.borderRadius || '0'), 0, 50)}
           />
           <span className="text-xs text-gray-400 min-w-[35px]">
             {element.props.borderRadius || '0px'}

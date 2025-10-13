@@ -95,55 +95,9 @@ function CanvasElementRenderer({
     const { props } = element;
     const hasChildren = props.children && props.children.length > 0;
     
-    // Handlers específicos del contenedor
-    const handleContainerDragOver = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.dataTransfer.dropEffect = 'copy';
-      return false;
-    };
-
-    const handleContainerDragLeave = (e) => {
-      if (!e.currentTarget.contains(e.relatedTarget)) {
-        // El estado se maneja en el componente padre
-      }
-    };
-
-    const handleContainerDrop = (e) => {
-      console.log('Container drop received on', element.id);
-      e.preventDefault();
-      e.stopPropagation();
-      
-      try {
-        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-        
-        if (data.type === 'panel-element') {
-          console.log('Adding element to container:', data.element.name);
-          if (onAddToContainer) {
-            onAddToContainer(element.id, data.element);
-          }
-        } else if (data.type === 'canvas-element') {
-          console.log('Moving element to container:', data.id);
-          if (onMoveToContainer) {
-            onMoveToContainer(data.id, element.id);
-          }
-        }
-      } catch (error) {
-        console.error('Container drop error:', error);
-      }
-    };
 
     return (
       <div
-        onDragOver={handleContainerDragOver}
-        onDragLeave={handleContainerDragLeave}
-        onDrop={handleContainerDrop}
-        onDragEnter={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          e.dataTransfer.dropEffect = 'copy';
-          return false;
-        }}
         className={`relative transition-all duration-300 ease-in-out ${
           isDragOver 
             ? 'shadow-lg transform scale-[1.02]' 
@@ -245,7 +199,7 @@ function CanvasElementRenderer({
         
         {/* Contenido del contenedor */}
         {hasChildren ? (
-          <div className="w-full">
+          <div className="w-full relative z-10">
             <div className="space-y-2">
               {/* Usar ContainerChild para elementos hijos */}
               {props.children.map((child, childIndex) => {

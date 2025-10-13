@@ -150,6 +150,8 @@ function Builder({ onExit }) {
             onUpdateElement={handleUpdateElement}
             onAddElementAtIndex={addElementAtIndex}
             onReorder={reorderElements}
+            onReorderInContainer={reorderElements}
+            onMoveOutOfContainer={moveToContainer}
           />
         </div>
 

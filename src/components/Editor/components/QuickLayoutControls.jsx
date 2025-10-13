@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   FiColumns, 
   FiGrid, 
@@ -21,32 +22,50 @@ function QuickLayoutControls({
   selectedElement, 
   onUpdateElement, 
   className = "",
-  position = "floating" // "floating" | "panel"
+  position = "floating", // "floating" | "panel"
+  elementRef // Referencia al elemento seleccionado para calcular posición
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [shouldShowBelow, setShouldShowBelow] = useState(false);
+  const [elementPosition, setElementPosition] = useState({ top: 0, left: 0, width: 0 });
   const controlsRef = useRef(null);
 
-  // Detectar si hay suficiente espacio arriba del elemento
+  // Calcular posición del elemento seleccionado en viewport
   useEffect(() => {
-    if (!controlsRef.current || position !== 'floating') return;
+    if (!elementRef?.current || position !== 'floating') return;
     
-    const checkPosition = () => {
-      const rect = controlsRef.current.getBoundingClientRect();
-      const parentRect = controlsRef.current.offsetParent?.getBoundingClientRect();
+    const updatePosition = () => {
+      const rect = elementRef.current.getBoundingClientRect();
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
       
-      // Si está muy cerca del top del viewport (menos de 80px), mostrar abajo
-      const distanceFromTop = rect.top - (parentRect?.top || 0);
-      setShouldShowBelow(distanceFromTop < 80);
+      setElementPosition({
+        top: rect.top + scrollY,
+        left: rect.left + scrollX,
+        width: rect.width,
+        height: rect.height
+      });
+      
+      // Determinar si mostrar abajo o arriba
+      setShouldShowBelow(rect.top < 80);
     };
     
-    // Verificar posición inicial
-    setTimeout(checkPosition, 100);
+    // Actualizar posición inicial
+    updatePosition();
     
-    // Verificar en resize
-    window.addEventListener('resize', checkPosition);
-    return () => window.removeEventListener('resize', checkPosition);
-  }, [selectedElement, position]);
+    // Actualizar en resize y scroll
+    const handleUpdate = () => {
+      requestAnimationFrame(updatePosition);
+    };
+    
+    window.addEventListener('resize', handleUpdate);
+    window.addEventListener('scroll', handleUpdate, true);
+    
+    return () => {
+      window.removeEventListener('resize', handleUpdate);
+      window.removeEventListener('scroll', handleUpdate, true);
+    };
+  }, [selectedElement, elementRef, position]);
 
   if (!selectedElement || selectedElement.type !== 'container') {
     return null;
@@ -210,11 +229,16 @@ function QuickLayoutControls({
     );
   }
 
-  // Versión flotante (overlay sobre el elemento seleccionado)
-  return (
+  // Versión flotante usando portal (overlay sobre el elemento seleccionado)
+  const floatingControls = (
     <div 
       ref={controlsRef}
-      className={`absolute ${shouldShowBelow ? 'top-full mt-2' : '-top-16'} left-0 z-50 ${className}`}
+      className="fixed z-[999999] pointer-events-auto"
+      style={{
+        top: shouldShowBelow ? elementPosition.top + (elementPosition.height || 0) + 4 : elementPosition.top - 52,
+        left: elementPosition.left,
+        maxWidth: '100vw'
+      }}
     >
       <div className="bg-[#1a1a1a]/95 backdrop-blur-sm border border-[#2a2a2a] rounded-lg shadow-xl p-2 flex items-center gap-1.5 animate-scale-in">
         {/* Presets principales */}
@@ -283,7 +307,16 @@ function QuickLayoutControls({
 
       {/* Panel avanzado desplegable */}
       {showAdvanced && (
-        <div className="absolute top-full left-0 mt-2 bg-[#1a1a1a]/95 backdrop-blur-sm border border-[#2a2a2a] rounded-xl shadow-xl p-4 min-w-[280px] animate-slide-up">
+        <div 
+          className="fixed bg-[#1a1a1a]/95 backdrop-blur-sm border border-[#2a2a2a] rounded-xl shadow-xl p-4 min-w-[280px] animate-slide-up z-[999999]"
+          style={{
+            top: (shouldShowBelow ? elementPosition.top + (elementPosition.height || 0) + 56 : elementPosition.top - 280),
+            left: elementPosition.left,
+            maxWidth: 'calc(100vw - 20px)',
+            maxHeight: 'calc(100vh - 20px)',
+            overflow: 'auto'
+          }}
+        >
           <h5 className="font-medium text-white mb-3 text-sm">Configuración Avanzada</h5>
           
           <div className="space-y-3">
@@ -345,6 +378,14 @@ function QuickLayoutControls({
       )}
     </div>
   );
+
+  // Renderizar usando portal si es versión flotante
+  if (position === "floating") {
+    return createPortal(floatingControls, document.body);
+  }
+
+  // Versión para panel (sin cambios)
+  return floatingControls;
 }
 
 export default QuickLayoutControls;

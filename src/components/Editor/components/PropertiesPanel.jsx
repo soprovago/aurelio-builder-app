@@ -18,6 +18,7 @@ import GoogleFontSelector from './GoogleFontSelector';
 import FontWeightSelector from './FontWeightSelector';
 import BorderSelector from './BorderSelector';
 import BackgroundSelector from './BackgroundSelector';
+import { getProgressGradientStyle, getOpacityProgressStyle } from '../../../utils/sliderUtils';
 
 // Componente de sección colapsable
 function CollapsibleSection({ title, icon: Icon, children, isOpen: initialIsOpen = true }) {
@@ -200,7 +201,8 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       max="1200"
                       value={parseInt(selectedElement.props.width || '1140')}
                       onChange={(e) => handlePropertyChange('width', e.target.value + 'px')}
-                      className="flex-1 custom-slider"
+                      className="flex-1 custom-slider progress-gradient"
+                      style={getProgressGradientStyle(parseInt(selectedElement.props.width || '1140'), 0, 1200)}
                     />
                     <span className="text-xs text-gray-400 min-w-[50px]">
                       {selectedElement.props.width || '1140px'}
@@ -218,7 +220,8 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       max="800"
                       value={parseInt(selectedElement.props.minHeight || '100')}
                       onChange={(e) => handlePropertyChange('minHeight', e.target.value + 'px')}
-                      className="flex-1 custom-slider"
+                      className="flex-1 custom-slider progress-gradient"
+                      style={getProgressGradientStyle(parseInt(selectedElement.props.minHeight || '100'), 0, 800)}
                     />
                     <span className="text-xs text-gray-400 min-w-[50px]">
                       {selectedElement.props.minHeight || '100px'}
@@ -485,7 +488,8 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       max="72"
                       value={parseInt(selectedElement.props.fontSize || '16')}
                       onChange={(e) => handlePropertyChange('fontSize', e.target.value + 'px')}
-                      className="flex-1 custom-slider"
+                      className="flex-1 custom-slider progress-gradient"
+                      style={getProgressGradientStyle(parseInt(selectedElement.props.fontSize || '16'), 8, 72)}
                     />
                     <span className="text-xs text-gray-400 min-w-[40px]">
                       {selectedElement.props.fontSize || '16px'}
@@ -633,7 +637,8 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       max="32"
                       value={parseInt(selectedElement.props.fontSize || '16')}
                       onChange={(e) => handlePropertyChange('fontSize', e.target.value + 'px')}
-                      className="flex-1 custom-slider"
+                      className="flex-1 custom-slider progress-gradient"
+                      style={getProgressGradientStyle(parseInt(selectedElement.props.fontSize || '16'), 8, 32)}
                     />
                     <span className="text-xs text-gray-400 min-w-[40px]">
                       {selectedElement.props.fontSize || '16px'}
@@ -904,7 +909,8 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                       step="0.1"
                       value={selectedElement.props.opacity || '1'}
                       onChange={(e) => handlePropertyChange('opacity', e.target.value)}
-                      className="flex-1 custom-slider"
+                      className="flex-1 custom-slider progress-gradient"
+                      style={getOpacityProgressStyle(selectedElement.props.opacity || '1')}
                     />
                     <span className="text-xs text-gray-400 min-w-[3rem]">
                       {Math.round((selectedElement.props.opacity || 1) * 100)}%
@@ -1077,7 +1083,8 @@ function PropertiesPanel({ selectedElement, onUpdateElement }) {
                           max="72"
                           value={parseInt(selectedElement.props.fontSize || '16')}
                           onChange={(e) => handlePropertyChange('fontSize', e.target.value + 'px')}
-                          className="flex-1 custom-slider"
+                          className="flex-1 custom-slider progress-gradient"
+                          style={getProgressGradientStyle(parseInt(selectedElement.props.fontSize || '16'), 8, 72)}
                         />
                         <span className="text-xs text-gray-400 min-w-[40px]">
                           {selectedElement.props.fontSize || '16px'}
