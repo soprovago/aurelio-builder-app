@@ -18,7 +18,7 @@ import GoogleFontSelector from './GoogleFontSelector';
 import FontWeightSelector from './FontWeightSelector';
 import BorderSelector from './BorderSelector';
 import BackgroundSelector from './BackgroundSelector';
-import { getProgressGradientStyle, getOpacityProgressStyle } from '../../../utils/sliderUtils';
+import { getProgressGradientStyle, getOpacityProgressStyle } from '../../../shared/utils/sliderUtils';
 
 // Componente de sección colapsable
 function CollapsibleSection({ title, icon: Icon, children, isOpen: initialIsOpen = true }) {

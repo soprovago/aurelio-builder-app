@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { FiSquare, FiCircle, FiMinus } from 'react-icons/fi';
-import { getPreviewStyles } from '../../../utils/borderUtils';
-import { getProgressGradientStyle } from '../../../utils/sliderUtils';
+import { getPreviewStyles } from '../../../shared/utils/borderUtils';
+import { getProgressGradientStyle } from '../../../shared/utils/sliderUtils';
 import BorderTypeSelector from './BorderTypeSelector';
 
 /**

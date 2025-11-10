@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { VIEWPORT_MODES, VIEWPORT_CONFIGS } from '../../../constants/viewportConfigs';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiBox } from 'react-icons/fi';
 import CanvasTemplateSystem from './CanvasTemplateSystem';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 import { CanvasDropZone, InsertionIndicator } from './EnhancedDropZones';
@@ -117,20 +117,64 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
               boxSizing: 'border-box',
             }}
           >
-            {/* El CanvasDropZone ya maneja el estado vacío, solo agregamos contenido cuando hay elementos */}
-            {elements.length > 0 && (
-              <>
-                {/* Elementos del canvas */}
+            {/* Zona de drop con estado vacío personalizada */}
+            <div
+              className={`relative transition-all duration-300 ${
+                isDragOver && elements.length === 0
+                  ? 'bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50'
+                  : ''
+              }`}
+              onDrop={elements.length === 0 ? handleDrop : undefined}
+              onDragOver={elements.length === 0 ? handleDragOver : undefined}
+              onDragLeave={elements.length === 0 ? handleDragLeave : undefined}
+            >
+              {/* Estado vacío con mensaje de arrastar */}
+              {elements.length === 0 && (
+                <div className="relative flex items-center justify-center py-20">
+                  <div className={`text-center transition-all duration-300 ${
+                    isDragOver
+                      ? 'transform scale-110 text-blue-600'
+                      : 'text-gray-500'
+                  }`}>
+                    <div className={`w-24 h-24 mx-auto rounded-full border-4 border-dashed flex items-center justify-center mb-6 transition-all duration-300 ${
+                      isDragOver
+                        ? 'border-blue-400 bg-blue-50 shadow-xl shadow-blue-400/30'
+                        : 'border-gray-300 bg-gray-50'
+                    }`}>
+                      {isDragOver ? (
+                        <FiPlus className="w-10 h-10 text-blue-500 animate-bounce" />
+                      ) : (
+                        <FiBox className="w-10 h-10 text-gray-400" />
+                      )}
+                    </div>
+                    
+                    <h2 className="text-3xl font-bold mb-4">
+                      {isDragOver ? '¡Perfecto! Suelta aquí' : 'Comienza tu diseño'}
+                    </h2>
+                    
+                    <p className="text-lg max-w-md mx-auto leading-relaxed">
+                      {isDragOver
+                        ? 'Tu elemento será agregado al lienzo'
+                        : 'Arrastra elementos desde el panel lateral para comenzar'}
+                    </p>
+
+                    {/* Animación de ondas durante el drag */}
+                    {isDragOver && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        <div className="absolute inset-8 border border-blue-300/30 rounded-full animate-ping" />
+                        <div className="absolute inset-16 border border-purple-300/30 rounded-full animate-ping animation-delay-300" />
+                        <div className="absolute inset-24 border border-pink-300/30 rounded-full animate-ping animation-delay-500" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Elementos del canvas cuando hay contenido */}
+              {elements.length > 0 && (
                 <div className="mb-8">
                   {elements.map((element, index) => (
                     <div key={element.id} className="relative">
-                      {/* Indicador de inserción superior */}
-                      {/* <InsertionIndicator 
-                        isActive={isDragging && index === 0}
-                        orientation="horizontal"
-                        className="mb-2"
-                      /> */}
-                      
                       {/* CanvasElement original - RESTAURADO y CORREGIDO */}
                       <CanvasElement
                         element={element}
@@ -153,28 +197,21 @@ function Canvas({ elements, selectedElement, onSelectElement, viewportMode, onAd
                         collisionDetection={collisionDetection}
                         setActiveDrag={setActiveDrag}
                       />
-                      
-                      {/* Indicador de inserción inferior */}
-                      {/* <InsertionIndicator 
-                        isActive={isDragging && index === elements.length - 1}
-                        orientation="horizontal"
-                        className="mt-2"
-                      /> */}
                     </div>
                   ))}
                 </div>
-                
-                {/* Sistema de plantillas siempre visible */}
-                <div className="border-t border-gray-200 pt-6">
-                  <CanvasTemplateSystem
-                    onAddContainerStructure={handleAddContainerStructure}
-                    onLoadTemplate={handleLoadTemplate}
-                    onUploadTemplate={handleUploadTemplate}
-                    onToggleEasyLayout={onToggleEasyLayout}
-                  />
-                </div>
-              </>
-            )}
+              )}
+            </div>
+            
+            {/* Sistema de plantillas SIEMPRE visible */}
+            <div className={`${elements.length > 0 ? 'border-t border-gray-200 pt-6' : 'mt-8'}`}>
+              <CanvasTemplateSystem
+                onAddContainerStructure={handleAddContainerStructure}
+                onLoadTemplate={handleLoadTemplate}
+                onUploadTemplate={handleUploadTemplate}
+                onToggleEasyLayout={onToggleEasyLayout}
+              />
+            </div>
           </div>
         </div>
       </div>

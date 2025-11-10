@@ -2,7 +2,7 @@ import React from 'react';
 import { ELEMENT_TYPES } from '../../../constants/elementTypes';
 import { FiTarget, FiInbox } from 'react-icons/fi';
 import { getFontFamily, loadGoogleFontWithStyle } from '../../../services/googleFonts';
-import { generateBorderStyles } from '../../../utils/borderUtils';
+import { generateBorderStyles } from '../../../shared/utils/borderUtils';
 
 // Función para renderizar elementos básicos (sin contenedores)
 export const renderBasicElement = (element) => {

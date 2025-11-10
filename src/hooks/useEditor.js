@@ -119,19 +119,44 @@ export const useEditor = (initialState = {}) => {
   }, [selectedElement]);
 
   /**
-   * Duplicar elemento
+   * Duplicar elemento con deep copy
    * 
    * @param {Object} element - Elemento a duplicar
    * @param {string} parentId - ID del contenedor padre (si es elemento hijo)
    */
   const duplicateElement = useCallback((element, parentId = null) => {
     console.log('📋 Duplicating element:', element.id);
+    
+    // Función para hacer deep copy de objetos
+    const deepCopy = (obj) => {
+      if (obj === null || typeof obj !== "object") return obj;
+      if (obj instanceof Date) return new Date(obj.getTime());
+      if (obj instanceof Array) return obj.map(item => deepCopy(item));
+      if (typeof obj === "object") {
+        const clonedObj = {};
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            clonedObj[key] = deepCopy(obj[key]);
+          }
+        }
+        return clonedObj;
+      }
+    };
 
     const duplicatedElement = {
       ...element,
       id: generateId(),
-      props: { ...element.props }
+      props: deepCopy(element.props) // Deep copy de todas las props
     };
+    
+    // Si el elemento tiene children, también duplicarlos con IDs únicos
+    if (duplicatedElement.props?.children) {
+      duplicatedElement.props.children = duplicatedElement.props.children.map(child => ({
+        ...child,
+        id: generateId(),
+        props: deepCopy(child.props)
+      }));
+    }
 
     if (parentId) {
       // Duplicar elemento hijo dentro de un contenedor
@@ -168,11 +193,37 @@ export const useEditor = (initialState = {}) => {
       }
       
       const originalElement = prev[elementIndex];
+      
+      // Función para hacer deep copy de objetos  
+      const deepCopy = (obj) => {
+        if (obj === null || typeof obj !== "object") return obj;
+        if (obj instanceof Date) return new Date(obj.getTime());
+        if (obj instanceof Array) return obj.map(item => deepCopy(item));
+        if (typeof obj === "object") {
+          const clonedObj = {};
+          for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              clonedObj[key] = deepCopy(obj[key]);
+            }
+          }
+          return clonedObj;
+        }
+      };
+      
       const duplicatedElement = {
         ...originalElement,
         id: generateId(),
-        props: { ...originalElement.props }
+        props: deepCopy(originalElement.props) // Deep copy de todas las props
       };
+      
+      // Si el elemento tiene children, también duplicarlos con IDs únicos
+      if (duplicatedElement.props?.children) {
+        duplicatedElement.props.children = duplicatedElement.props.children.map(child => ({
+          ...child,
+          id: generateId(),
+          props: deepCopy(child.props)
+        }));
+      }
       
       // Insertar justo después del elemento original
       const newElements = [...prev];

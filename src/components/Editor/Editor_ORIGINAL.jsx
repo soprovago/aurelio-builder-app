@@ -864,13 +864,38 @@ function Editor({ onExit }) {
     }
   }, [selectedElement]);
 
-  // Función para duplicar elementos
+  // Función para duplicar elementos con deep copy
   const duplicateElement = useCallback((elementToDuplicate, parentId = null) => {
+    // Función para hacer deep copy de objetos
+    const deepCopy = (obj) => {
+      if (obj === null || typeof obj !== "object") return obj;
+      if (obj instanceof Date) return new Date(obj.getTime());
+      if (obj instanceof Array) return obj.map(item => deepCopy(item));
+      if (typeof obj === "object") {
+        const clonedObj = {};
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            clonedObj[key] = deepCopy(obj[key]);
+          }
+        }
+        return clonedObj;
+      }
+    };
+
     const duplicatedElement = {
       ...elementToDuplicate,
       id: `${elementToDuplicate.type}-${generateId()}`,
-      props: { ...elementToDuplicate.props }
+      props: deepCopy(elementToDuplicate.props) // Deep copy de todas las props
     };
+    
+    // Si el elemento tiene children (como contenedores), también duplicarlos con IDs únicos
+    if (duplicatedElement.props?.children) {
+      duplicatedElement.props.children = duplicatedElement.props.children.map(child => ({
+        ...child,
+        id: `${child.type}-${generateId()}`,
+        props: deepCopy(child.props)
+      }));
+    }
 
     if (parentId) {
       // Duplicar en contenedor específico
